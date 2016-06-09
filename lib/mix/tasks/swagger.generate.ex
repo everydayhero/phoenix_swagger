@@ -1,5 +1,6 @@
 defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   use Mix.Task
+  alias Mix.Project
 
   @shortdoc "Generates swagger.json file based on controller defintions"
 
@@ -17,7 +18,10 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   @default_title "<Untitled>"
   @default_version "0.0.1"
 
-  @app_path Enum.at(Mix.Project.load_paths, 0) |> String.split("_build") |> Enum.at(0)
+  @app_path Project.load_paths
+    |> Enum.at(0)
+    |> String.split("_build")
+    |> Enum.at(0)
   @swagger_file_name "swagger.json"
   @swagger_file_path @app_path <> @swagger_file_name
 
@@ -48,8 +52,8 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   defp base_swagger_map, do: %{swagger: "2.0"}
 
   defp collect_info(swagger_map) do
-    info = if function_exported?(Mix.Project.get, :swagger_info, 0) do
-      Map.merge(Mix.Project.get.swagger_info, default_info_section)
+    info = if function_exported?(Project.get, :swagger_info, 0) do
+      Map.merge(Project.get.swagger_info, default_info_section)
     else
       default_info_section()
     end
@@ -94,7 +98,7 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
 
   defp find_swagger_output_function(route_map) do
     controller = Module.concat([:Elixir | Module.split(route_map.plug)])
-    swagger_fun = ("swagger_" <> to_string(route_map.opts)) |> String.to_atom
+    swagger_fun = "swagger_#{to_string(route_map.opts)}" |> String.to_atom
 
     if Code.ensure_loaded?(controller) == false do
       raise "Error: #{controller} module didn't load."
@@ -123,12 +127,12 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   end
 
   defp app_module do
-    Mix.Project.get.application[:mod]
+    Project.get.application[:mod]
     |> elem(0)
   end
 
   defp app_name do
-    Mix.Project.get.project[:app]
+    Project.get.project[:app]
   end
 
   defp router_module do

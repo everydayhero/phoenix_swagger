@@ -1,4 +1,6 @@
 defmodule PhoenixSwagger do
+  @moduledoc "Generates functions from the PhoenixSwagger DSL into Swagger maps"
+
   defmacro __using__(_) do
     quote do
       import PhoenixSwagger
@@ -19,14 +21,19 @@ defmodule PhoenixSwagger do
   end
 
   defp deconstruct(swagger) do
-    path = Map.keys(swagger) |> List.first
-    verb = Map.keys(swagger[path]) |> List.first
+    path = swagger
+      |> Map.keys
+      |> List.first
+    verb = swagger[path]
+      |> Map.keys
+      |> List.first
+
     {path, verb, swagger[path][verb]}
   end
 
-  def summary(swagger, summary) do
+  def summary(swagger, path_summary) do
     {path, verb, _} = deconstruct(swagger)
-    put_in(swagger, [path, verb, "summary"], summary)
+    put_in(swagger, [path, verb, "summary"], path_summary)
   end
 
   def description(swagger, desc) do
