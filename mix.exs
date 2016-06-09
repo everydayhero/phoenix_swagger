@@ -27,6 +27,8 @@ defmodule PhoenixSwagger.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    []
+    [
+      {:credo, "~> 0.3", only: [:dev, :test]},
+    ]
   end
 end
