@@ -1,23 +1,29 @@
-defmodule PhoenixSwaggerTest do
+defmodule PhoenixSwagger.PathTest do
   use ExUnit.Case
   use PhoenixSwagger
 
-  doctest PhoenixSwagger
+  doctest PhoenixSwagger.Path
 
-  swagger_model :index do
-    get "/api/v1/users"
-    summary "Query for users"
-    description "Query for users with paging and filtering"
-    parameter :query, :'page[size]', :integer, "Number of elements per page", :required
-    parameter :query, :'page[number]', :integer, "Number of the page"
-    parameter :query, :'filter[sex]', :string, "Sex of the user"
-    responses 200, "OK", ref: "#/definitions/Users"
+  swagger_path :index do
+    get("/api/v1/users")
+    summary("Query for users")
+    description("Query for users with paging and filtering")
+    produces "application/json"
+    tag "Users"
+    paging()
+    parameter("filter[gender]", "query", "string", "Gender of the user")
+    response(200, "OK", Schema.ref(:Users))
+    response(400, "Client Error")
   end
 
-  test "produces expected swagger json" do
-    assert swagger_index == %{
+   test "produces expected swagger json" do
+    assert swagger_path_index == %{
       "/api/v1/users" => %{
         "get" => %{
+          "consumes" => [],
+          "produces" => ["application/json"],
+          "tags" => ["Users"],
+          "operationId" => "PhoenixSwagger.PathTest.index",
           "summary" => "Query for users",
           "description" => "Query for users with paging and filtering",
           "parameters" => [
@@ -25,7 +31,7 @@ defmodule PhoenixSwaggerTest do
               "description" => "Number of elements per page",
               "in" => "query",
               "name" => "page[size]",
-              "required" => true,
+              "required" => false,
               "type" => "integer"
             },
             %{
@@ -37,9 +43,9 @@ defmodule PhoenixSwaggerTest do
               "type" => "integer"
             },
             %{
-              "description" => "Sex of the user",
+              "description" => "Gender of the user",
               "in" => "query",
-              "name" => "filter[sex]",
+              "name" => "filter[gender]",
               "required" => false,
               "type" => "string"
             }
@@ -50,6 +56,9 @@ defmodule PhoenixSwaggerTest do
               "schema" =>  %{
                 "$ref" => "#/definitions/Users"
               }
+            },
+            "400" => %{
+              "description" => "Client Error"
             }
           }
         }
