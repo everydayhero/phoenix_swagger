@@ -1,4 +1,8 @@
 defmodule PhoenixSwagger.Schema do
+  @moduledoc """
+  Struct and helpers for swagger schema
+  """
+
   defstruct(
     '$ref': nil,
     format: nil,
@@ -36,5 +40,9 @@ defmodule PhoenixSwagger.Schema do
     end
     def ref(path) when is_binary(path) do
       %PhoenixSwagger.Schema{ '$ref': path }
+    end
+
+    def description(model = %PhoenixSwagger.Schema{}, desc) do
+      %{model | description: desc}
     end
 end

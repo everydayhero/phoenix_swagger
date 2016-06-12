@@ -2,12 +2,6 @@ defmodule PhoenixSwagger do
   @moduledoc "Generates functions from the PhoenixSwagger DSL into Swagger maps"
   alias PhoenixSwagger.Util
 
-  defmacro __using__(_) do
-    quote do
-      import PhoenixSwagger
-    end
-  end
-
   defmacro swagger_path(action, expr) do
     body = Util.pipeline_body(expr)
     fun_name = "swagger_path_#{action}" |> String.to_atom
@@ -27,7 +21,7 @@ defmodule PhoenixSwagger do
     quote do
       def swagger_definitions do
         alias PhoenixSwagger.JsonApi
-        alias PhoenixSwagger.Schema
+        import PhoenixSwagger.Schema
         unquote(exprs) |> List.flatten |> Enum.into(%{}) |> Util.to_json
       end
     end
@@ -36,7 +30,7 @@ defmodule PhoenixSwagger do
     quote do
       def swagger_definitions do
         alias PhoenixSwagger.JsonApi
-        alias PhoenixSwagger.Schema
+        import PhoenixSwagger.Schema
         unquote(expr) |> Enum.into(%{}) |> Util.to_json
       end
     end

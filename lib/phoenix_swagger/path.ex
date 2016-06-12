@@ -21,6 +21,11 @@ defmodule PhoenixSwagger.Path do
   alias PhoenixSwagger.Schema
 
   defmodule Parameter do
+    @moduledoc """
+    A swagger parameter definition, similar to a Schema, but swagger Defines
+    parameter name (and some other options) to be part of the parameter object itself.
+    """
+
     defstruct(
       name: "",
       in: "",
@@ -48,10 +53,17 @@ defmodule PhoenixSwagger.Path do
   end
 
   defmodule ResponseObject do
+    @moduledoc """
+    A swagger response definition.
+    The response status (200, 404, etc.) is the key in the containing map.
+    """
     defstruct description: "", schema: nil, headers: nil, examples: nil
   end
 
   defmodule OperationObject do
+    @moduledoc """
+    A swagger operation object ties together parameters, responses, etc.
+    """
     defstruct(
       tags: [],
       summary: "",
@@ -67,15 +79,32 @@ defmodule PhoenixSwagger.Path do
   end
 
   defmodule PathObject do
+    @moduledoc """
+    The DSL builds paths out of individual operations, so this is a flattened version
+    of a swagger Path. The nest function will convert this to a nested map before final
+    conversion to a JSON map.
+    """
     defstruct path: "", verb: "", operation: %OperationObject{}
   end
 
-  @doc """
-  Initializes a Swagger Path DSL block
-  """
-  def get(path) do
-    %PathObject{path: path, verb: "get"}
-  end
+  @doc "Initializes a Swagger Path DSL block with a get verb"
+  def get(path), do: %PathObject{path: path, verb: "get"}
+
+  @doc "Initializes a Swagger Path DSL block with a post verb"
+  def post(path), do: %PathObject{path: path, verb: "post"}
+
+  @doc "Initializes a Swagger Path DSL block with a put verb"
+  def put(path), do: %PathObject{path: path, verb: "put"}
+
+  @doc "Initializes a Swagger Path DSL block with a delete verb"
+  def delete(path), do: %PathObject{path: path, verb: "delete"}
+
+  @doc "Initializes a Swagger Path DSL block with a head verb"
+  def head(path), do: %PathObject{path: path, verb: "head"}
+
+  @doc "Initializes a Swagger Path DSL block with a options verb"
+  def options(path), do: %PathObject{path: path, verb: "options"}
+
 
   @doc """
   Adds the summary section to the operation of a swagger %PathObject{}
@@ -122,14 +151,14 @@ defmodule PhoenixSwagger.Path do
   @doc """
   Adds a parameter to the operation of a swagger %PathObject{}
   """
-  def parameter(path = %PathObject{}, name, location, type, description, required? \\ false) do
+  def parameter(path = %PathObject{}, name, location, type, description, opts \\ []) do
     param = %Parameter{
       name: name,
       in: location,
       type: type,
-      description: description,
-      required: if required? do true else false end
+      description: description
     }
+    param = Enum.reduce(opts, param, fn {k,v}, acc -> %{acc | k => v} end)
     params = path.operation.parameters
     put_in path.operation.parameters, params ++ [param]
   end

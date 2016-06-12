@@ -1,6 +1,6 @@
 defmodule PhoenixSwagger.JsonApiTest do
   use ExUnit.Case
-  use PhoenixSwagger
+  import PhoenixSwagger
 
   doctest PhoenixSwagger.JsonApi
 
@@ -8,7 +8,7 @@ defmodule PhoenixSwagger.JsonApiTest do
     JsonApi.resource(:User, :Users) do
       description "A user that may have one or more supporter pages."
       attributes do
-        user_updated_at :string, "Last update timestamp UTC"
+        user_updated_at :string, "Last update timestamp UTC", format: "ISO-8601"
         user_created_at :string, "First created timestamp UTC"
         street_address :string, "Street address"
         region :string, "The users region"
@@ -78,7 +78,7 @@ defmodule PhoenixSwagger.JsonApiTest do
             "region" => %{"description" => "The users region", "type" => "string"},
             "street_address" => %{"description" => "Street address", "type" => "string"},
             "user_created_at" => %{"description" => "First created timestamp UTC", "type" => "string"},
-            "user_updated_at" => %{"description" => "Last update timestamp UTC", "type" => "string"}
+            "user_updated_at" => %{"description" => "Last update timestamp UTC", "type" => "string", "format" => "ISO-8601"}
           },
           "type" => "object"
         }

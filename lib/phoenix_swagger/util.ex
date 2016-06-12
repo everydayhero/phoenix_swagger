@@ -1,4 +1,6 @@
 defmodule PhoenixSwagger.Util do
+  @moduledoc "Helper functions and macros for implementing swagger DSL"
+
   @doc """
   Given a do-end block, insert the pipline operator |> between each expression,
   turning the whole thing into a single expression.
