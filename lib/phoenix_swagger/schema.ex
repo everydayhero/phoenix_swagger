@@ -36,10 +36,10 @@ defmodule PhoenixSwagger.Schema do
       or a complete path.
     """
     def ref(name) when is_atom(name) do
-      %PhoenixSwagger.Schema{ '$ref': "#/definitions/#{name}" }
+      %PhoenixSwagger.Schema{'$ref': "#/definitions/#{name}"}
     end
     def ref(path) when is_binary(path) do
-      %PhoenixSwagger.Schema{ '$ref': path }
+      %PhoenixSwagger.Schema{'$ref': path}
     end
 
     def description(model = %PhoenixSwagger.Schema{}, desc) do

@@ -186,7 +186,7 @@ defmodule PhoenixSwagger.Path do
   Adds a parameter to the operation of a swagger %PathObject{}, with a schema
   """
   def response(path = %PathObject{}, status, description, schema) when is_atom(schema)  do
-    resp = %ResponseObject{description: description, schema: %{ "$ref" => "#/definitions/#{schema}" }}
+    resp = %ResponseObject{description: description, schema: %{"$ref" => "#/definitions/#{schema}"}}
     put_in path.operation.responses[status |> to_string], resp
   end
   def response(path = %PathObject{}, status, description, schema = %Schema{}) do
