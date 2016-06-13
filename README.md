@@ -25,30 +25,46 @@ Now you can use `phoenix_swagger` to generate `swagger-ui` file for you applicat
 
 ## Usage
 
-To generate [Info Object](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#infoObject)
-you must provide `swagger_info/0` function in your `mix.exs` file. This function must
-returns keyword list that contains `Info Object` fields:
+You must provide `swagger_spec/0` function in your `mix.exs` file. This function must
+return a map that contains the structure of a [swagger object](http://swagger.io/specification/#swaggerObject)
+This defines the skeleton of your swagger spec, with the `paths` and `definitions` sections being filled in by phoenix_swagger.
 
 ```elixir
-def swagger_info do
-  [version: "0.0.0", title: "My awesome phoenx application"]
+def swagger_spec do
+  %{
+    :swagger => "2.0",
+    :info => %{
+      version: "0.0.1",
+      title: "My awesome phoenix project."
+    },
+    securityDefinitions: %{
+      basic_auth: %{
+        type: "basic",
+        description: "Standard HTTP basic authentication applies to all API operations."
+      }
+    },
+    security: [
+      %{basic_auth: []}
+    ],
+    tags: [
+      %{
+        name: "users",
+        description: "Operations related to users"
+      }
+    ],
+    consumes: [
+      "application/vnd.api+json"
+    ],
+    produces: [
+      "application/vnd.api+json"
+    ],
+    definitions: %{},
+    paths: %{},
+  }
 end
 ```
 
-The `version` and `title` are mandatory fields. By default the `version` will be `0.0.1`
-and the `title` will be `<enter your title>` if you will not provide `swagger_info/0`
-function.
-
-Other fields that can be in the `swagger_info`:
-
-Name          | Type
-------------- | -------------
-description   | string
-termsOfService| string
-contact       | [name: "...", url: "...", email:"..."]
-license       | [name: "...", url: "..."]
-
-`PhoenixSwagger` provides `swagger_model/2` macro that generates swagger documentation
+`PhoenixSwagger` provides `swagger_path/2` macro that generates swagger documentation
 for the certain phoenix controller.
 
 Example:
@@ -56,10 +72,13 @@ Example:
 ```elixir
 use PhoenixSwagger
 
-swagger_model :index do
-  description "Short description"
-  parameter :query, :id, :integer, :required, "Property id"
-  responses 200, "Description"
+swagger_path :index do
+  get "/users"
+  summary "Get users"
+  description "Get users, filtering by account ID"
+  parameter :query, :id, :integer, "account id", required: true
+  response 200, "Description", :Users
+  tag "users"
 end
 
 def index(conn, _params) do
@@ -68,58 +87,72 @@ def index(conn, _params) do
 end
 ```
 
-The `swagger_model` macro takes two parameters:
+The `swagger_path` macro takes two parameters:
 
-* Name of controller action;
-* `do` block that contains `swagger` definitions.
+* The name of the controller action
+* `do` block containing calls into the PhoenixSwagger.Path module.
 
-The `PhoenixSwagger` supports three definitions:
+The body of the DSL is only a thin layer of syntax sugar over a regular phoenix function pipeline.
+The example above can be re-written as:
 
-1. The `description` takes one elixir's `String` and provides short description for the
-given controller action.
+```elixir
+def swagger_path_index do
+  import Phoenix.Swagger.Path
+  get("/users")
+  |> description("Short description")
+  |> parameter(:query, :id, :integer, "Property id", required: true)
+  |> response(200, "Description")
+  |> nest
+  |> to_json
+end
+```
 
-2. The `parameter` provides description of the routing parameter for the given action and
-may take five parameters:
+The `do` bock always starts with one of the `get`, `put`, `post`, `delete`, `head`, `options` functions. This creates a new `#SwaggerPath{}` struct to pipeline through the remaining functions.
+
+At a minimum, you should probably supply `summary`, `description`, `parameter`, and `response` docs.
+
+The `parameter` provides description of the routing parameter for the given action and
+may take four positional parameters, and a keyword list of optional parameters:
 
 * The location of the parameter. Possible values are `query`, `header`, `path`, `formData` or `body`. [required];
 * The name of the parameter. [required];
 * The type of the parameter. Allowed only [swagger data types](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#data-types
 ) [required];
-* Determines whether this parameter is mandatory, just remove it if a parameter non-required;
 * Description of a parameter. Can be elixir's `String` or function/0 that returns elixir's string;
+* Keyword parameters can use any attribute from the [swagger parameter spec](http://swagger.io/specification/#parameterObject), and additionally can use `required: true` to indicate that the parameter is mandatory.
 
-Note that order of parameters is important now.
-
-And the third definition is `responses` that takes three parameters (third parameter is not mandatory)
-and generates definition of the response for the given controller action. The first argument is http
-status code and has `:integer` data type. The second is the short description of the response. The third
-non-mandatory field is a schema of the response. It must be elixir `function/0` that returns a map in a
-swagger schema format.
-
-For example:
+Responses supply a status code, description and optional schema.
+The simplest way to supply a schema is to use the `Schema.ref/1` helper function.
 
 ```elixir
-use PhoenixSwagger
+response 200, "Description", Schema.ref(:Post)
+```
 
-swagger_model :get_person do
-  description "Get persons according to the age"
-  parameter :query, :id, :integer, :required
-  responses 200, "Description", get_person_schema
-end
+Schemas can be defined using the `swagger_definitions` macro.
+Helpers are included for defining JSON-API style resources:
 
-def schema do
-  %{type: :array, title: "Persons",
-    items:
-      %{title: "Person", type: :object, properties: %{ name: %{type: :string}}}
-   }
+```elixir
+swagger_definitions do
+  JsonApi.resource(:User, :Users) do
+    description "A user of the system."
+    attributes do
+      user_updated_at :string, "Last update timestamp UTC", format: "ISO-8601"
+      user_created_at :string, "First created timestamp UTC"
+      street_address :string, "Street address"
+      email :string, "Email", required: true
+    end
   end
-
-def get_person_schema(conn, _params) do
-    ...
-    ...
-    ...
 end
 ```
+
+This example adds two entries to the [definitions](http://swagger.io/specification/#definitionsObject) section of the swagger document.
+
+* User: containing the declared attributes
+* Users: for paginated responses with links to next, prev, first, last pages.
+
+Each line in the attributes block should contain name, type, description, keyword-args.
+The keyword args can contain any [Schema Object](http://swagger.io/specification/#schemaObject) fields.
+
 
 That's all after this run the `phoenix.swagger.generate` mix task for the `swagger-ui` json
 file generation into directory with `phoenix` application:
@@ -136,4 +169,3 @@ mix phoenix.swagger.generate ~/my-phoenix-api.json
 ```
 
 For more informantion, you can find `swagger` specification [here](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md).
-
