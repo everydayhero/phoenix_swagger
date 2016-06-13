@@ -17,7 +17,7 @@ defmodule PhoenixSwagger.JsonApiTest do
         locality :string, "???"
         full_name :string, "Full name"
         extended_address :string, "Extended address"
-        email :string, "Email"
+        email :string, "Email", required: true
         country :string, "Country"
         birthday :string, "Birthday in YYYY-MM-DD format"
       end
@@ -80,7 +80,8 @@ defmodule PhoenixSwagger.JsonApiTest do
             "user_created_at" => %{"description" => "First created timestamp UTC", "type" => "string"},
             "user_updated_at" => %{"description" => "Last update timestamp UTC", "type" => "string", "format" => "ISO-8601"}
           },
-          "type" => "object"
+          "type" => "object",
+          "required" => ["email"]
         }
       },
       "type" => "object"

@@ -140,13 +140,25 @@ defmodule PhoenixSwagger.JsonApi do
 
   Name, type and description are accepted as positional arguments, but any other
   schema properties can be set through the trailing keyword arguments list.
+  As a convenience, required: true can be passed in the keyword args, causing the
+   name of this attribute to be added to the "required" list of the attributes schema.
+
   """
   def attribute(model = %Schema{}, name, type, description, opts \\ []) do
-    schema = Enum.reduce(
-      opts,
-      %Schema{type: type, description: description},
-      fn {k, v}, acc -> %{acc | k => v} end)
+    schema = opts
+      |> Keyword.drop([:required])
+      |> Enum.reduce(
+          %Schema{type: type, description: description},
+          fn {k, v}, acc -> %{acc | k => v} end)
 
-    put_in model.properties.attributes.properties[name], schema
+    model = put_in model.properties.attributes.properties[name], schema
+
+    required = case {model.properties.attributes.required, opts[:required]} do
+      {nil, true} -> [name]
+      {r, true} -> r ++ [name]
+      {r, _} -> r
+    end
+
+    put_in model.properties.attributes.required, required
   end
 end
