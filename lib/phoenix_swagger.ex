@@ -20,6 +20,7 @@ defmodule PhoenixSwagger do
   defmacro swagger_definitions([do: {:__block__, [], exprs}]) do
     quote do
       def swagger_definitions do
+        require PhoenixSwagger.JsonApi
         alias PhoenixSwagger.JsonApi
         import PhoenixSwagger.Schema
         unquote(exprs) |> List.flatten |> Enum.into(%{}) |> Util.to_json
@@ -29,6 +30,7 @@ defmodule PhoenixSwagger do
   defmacro swagger_definitions([do: expr]) do
     quote do
       def swagger_definitions do
+        require PhoenixSwagger.JsonApi 
         alias PhoenixSwagger.JsonApi
         import PhoenixSwagger.Schema
         unquote(expr) |> Enum.into(%{}) |> Util.to_json

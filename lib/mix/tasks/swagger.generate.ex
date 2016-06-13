@@ -42,23 +42,19 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   end
 
   defp swagger_documentation do
-    base_swagger_map
-    |> collect_info
+    collect_outline
     |> collect_host
     |> collect_paths
+    |> collect_definitions
     |> Poison.encode!(pretty: true)
   end
 
-  defp base_swagger_map, do: %{swagger: "2.0"}
-
-  defp collect_info(swagger_map) do
-    info = if function_exported?(Project.get, :swagger_info, 0) do
-      Map.merge(Project.get.swagger_info, default_info_section)
+  defp collect_outline() do
+    if function_exported?(Project.get, :swagger_spec, 0) do
+      Project.get.swagger_spec
     else
-      default_info_section()
+      default_outline()
     end
-
-    Map.put_new(swagger_map, :info, info)
   end
 
   defp collect_host(swagger_map) do
@@ -75,29 +71,35 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     end
   end
 
-  defp collect_paths(swagger_map) do
-    api_routes = router_module.__routes__
-
-    paths = List.foldl(api_routes, %{},
-      fn (route, acc) ->
-        {controller, swagger_output_function} = find_swagger_output_function(route)
-
-        path = format_path(route.path)
-
-        if function_exported?(controller, swagger_output_function, 0) do
-          %{^path => swagger_action} = apply(controller, swagger_output_function, [])
-
-          Map.merge(acc, %{path => swagger_action}, fn _, m1, m2 -> Map.merge(m1, m2) end)
-        else
-          acc
-        end
+  defp collect_definitions(swagger_map) do
+    router_module.__routes__
+    |> Enum.map(&find_controller/1)
+    |> Enum.uniq()
+    |> Enum.filter(&(function_exported?(&1, :swagger_definitions, 0)))
+    |> Enum.map(&(apply(&1, :swagger_definitions, [])))
+    |> Enum.reduce(swagger_map, fn definitions, acc ->
+        %{acc | definitions: Map.merge(acc.definitions, definitions)}
       end)
-
-    Map.put_new(swagger_map, :paths, paths)
   end
 
-  defp find_swagger_output_function(route_map) do
-    controller = Module.concat([:Elixir | Module.split(route_map.plug)])
+  defp collect_paths(swagger_map) do
+    router_module.__routes__
+    |> Enum.map(&find_swagger_path_function/1)
+    |> Enum.filter(fn {controller, func} ->
+        function_exported?(controller, func, 0)
+      end)
+    |> Enum.map(fn {controller, func} -> apply(controller, func, []) end)
+    |> Enum.reduce(swagger_map, fn path, acc ->
+        %{acc | paths: Map.merge(acc.paths, path, fn _, m1, m2 -> Map.merge(m1, m2) end)}
+      end)
+  end
+
+  defp find_controller(route_map) do
+    Module.concat([:Elixir | Module.split(route_map.plug)])
+  end
+
+  defp find_swagger_path_function(route_map) do
+    controller = find_controller(route_map)
     swagger_fun = "swagger_path_#{to_string(route_map.opts)}" |> String.to_atom
 
     if Code.ensure_loaded?(controller) == false do
@@ -143,10 +145,13 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     "#{@app_path}_build/#{Mix.env}/lib/#{app_name}/ebin"
   end
 
-  defp default_info_section do
+  defp default_outline do
     %{
-      title: @default_title,
-      version: @default_version,
+      swagger: "2.0",
+      info: %{
+        title: @default_title,
+        version: @default_version,
+      }
     }
   end
 
