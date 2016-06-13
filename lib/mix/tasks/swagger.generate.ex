@@ -1,10 +1,11 @@
 defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   use Mix.Task
+  alias Mix.Project
 
-  @shortdoc "Generates swagger.json file based on phoenix router"
+  @shortdoc "Generates swagger.json file based on controller defintions"
 
   @moduledoc """
-  Generates swagger.json file based on phoenix router and controllers.
+  Generates swagger.json file based on controller definitions
 
   Usage:
 
@@ -14,23 +15,25 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   """
 
   @default_port 4000
-  @default_title "<enter your title>"
+  @default_title "<Untitled>"
   @default_version "0.0.1"
 
-  @app_path Enum.at(Mix.Project.load_paths, 0) |> String.split("_build") |> Enum.at(0)
-  @swagger_file_name "swagger.js"
+  @app_path Project.load_paths
+    |> Enum.at(0)
+    |> String.split("_build")
+    |> Enum.at(0)
+  @swagger_file_name "swagger.json"
   @swagger_file_path @app_path <> @swagger_file_name
 
-  @doc false
-  def run([]) do
-    run(@swagger_file_path)
+  def run([]), do: run(@swagger_file_path)
+  def run([output_file]), do: run(output_file)
+  def run(output_file) when is_binary(output_file) do
+    Code.append_path(ebin)
+    File.write(output_file, swagger_documentation)
+    Code.delete_path(ebin)
+    IO.puts "Documentation generated to #{output_file}"
   end
-
-  def run([output_file]) do
-    run(output_file)
-  end
-
-  def run(opts) when is_list(opts) do
+  def run(_) do
     IO.puts """
     Usage: mix phoenix.swagger.generate [FILE]
 
@@ -38,87 +41,29 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     """
   end
 
-  def run(output_file) do
-    # initial swagger API data
-    swagger_map = %{swagger: "2.0"}
-    # get some information about our application
-    app = Mix.Project.get.application
-    project = Mix.Project.get.project
-    # get application and router modules
-    app_name = project |> Keyword.get(:app)
-    app_mod = app |> Keyword.get(:mod) |> elem(0)
-    router_mod = Module.concat([app_mod, :Router])
-    # append path with the given application
-    ebin = @app_path <> "_build/" <> (Mix.env |> to_string) <> "/lib/" <> (app_name |> to_string) <> "/ebin"
-    Code.append_path(ebin)
-    # collect data and generate swagger map
-    result = collect_info(swagger_map)
-             |> collect_host(app_name, app_mod)
-             |> collect_paths(router_mod, app_mod)
-             |> Poison.encode!
-    File.write(output_file, result)
-    Code.delete_path(ebin)
-    IO.puts "Done."
+  defp swagger_documentation do
+    collect_outline
+    |> collect_host
+    |> collect_paths
+    |> collect_definitions
+    |> Poison.encode!(pretty: true)
   end
 
-  @doc false
-  defp collect_paths(swagger_map, router_mod, app_mod) do
-    # get routes that have pipeline - api
-    api_routes = get_api_routes(router_mod)
-    # build 'paths' swagger attribute
-    paths = List.foldl(api_routes, %{},
-      fn (route_map, acc) ->
-        {controller, swagger_fun} = get_api(app_mod, route_map)
-        # phoenix router accepts parameters in a '/path/path/:id'
-        # format, but the swagger has another format, that's why
-        # why we need to convert it to swagger format '/path/{id}'
-        path = format_path(route_map.path)
-        # check that give controller haev swagger_.* function and call it
-        case function_exported?(controller, swagger_fun, 0) do
-          true ->
-            {[description], parameters, response_code,
-             response_description, meta} = apply(controller, swagger_fun, [])
-            # convert list of parameters to maps
-            parameters = get_parameters(parameters)
-            # make 'description' and 'parameters' maps
-            request_map = Map.put_new(%{}, :description, description)
-            request_map = Map.put_new(request_map, :parameters,  parameters)
-            # make internals of 'responses' map
-            response_map = Map.put_new(%{}, :description, response_description)
-            response_map = case meta do
-                             [] ->
-                               response_map
-                             [meta] ->
-                               Map.put_new(response_map, :schema, meta)
-                           end
-            # make response map - #{http_code: .....}
-            response = Map.put_new(%{}, response_code |> to_string, response_map)
-            # make rest_method map (get:, update: ....)
-            rest_method  = Map.put_new(%{}, route_map.verb, request_map)
-            # finish path map
-            body  = Map.put_new(rest_method[route_map.verb], :responses, response)
-            # add http method to the tree
-            path_map  = Map.put_new(%{}, route_map.verb, body)
-            # finish paths
-            Map.put_new(acc, path, path_map)
-          _ ->
-            # A controller has no swagger_[action] function, so
-            # we ust miss this API
-            acc
-        end
-      end)
-
-    Map.put_new(swagger_map, :paths, paths)
+  defp collect_outline() do
+    if function_exported?(Project.get, :swagger_spec, 0) do
+      Project.get.swagger_spec
+    else
+      default_outline()
+    end
   end
 
-  @doc false
-  defp collect_host(swagger_map, app_name, app_mod) do
-    endpoint_config = Application.get_env(app_name,Module.concat([app_mod, :Endpoint]))
+  defp collect_host(swagger_map) do
+    endpoint_config = Application.get_env(app_name, Module.concat([app_module, :Endpoint]))
     [{:host, host}] = Keyword.get(endpoint_config, :url, [{:host, "localhost"}])
     [{:port, port}] = Keyword.get(endpoint_config, :http, [{:port, @default_port}])
-    https = Keyword.get(endpoint_config, :https, nil)
     swagger_map = Map.put_new(swagger_map, :host, host <> ":" <> to_string(port))
-    case https do
+
+    case endpoint_config[:https] do
       nil ->
         swagger_map
       _ ->
@@ -126,40 +71,44 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     end
   end
 
-  @doc false
-  defp collect_info(swagger_map) do
-    case function_exported?(Mix.Project.get, :swagger_info, 0) do
-      true ->
-        info = Mix.Project.get.swagger_info
-        title = Keyword.get(info, :title, nil)
-        version = Keyword.get(info, :version, nil)
-        # collect :info swagger fields to the map
-        info = List.foldl(info, %{},
-          fn ({info_key, info_val}, map) ->
-            Map.put_new(map, info_key, info_val)
-          end)
-        # :title and :version are mandatory fields,
-        # so we need to check and add default values
-        # if they are not exists
-        info = if title == nil do
-          Map.put_new(info, :title, @default_title)
-        end
-        info = if version == nil do
-          Map.put_new(info, :version, @default_version)
-        end
-        # resulted :info swagger field
-        Map.put_new(swagger_map, :info, info)
-      false ->
-        # we have swagger_info/0 in the mix.exs, so we
-        # just adding default values for the mandatory
-        # fields
-        info = Map.put_new(%{}, :title, @default_title)
-        info = Map.put_new(info, :version, @default_version)
-        Map.put_new(swagger_map, :info, info)
+  defp collect_definitions(swagger_map) do
+    router_module.__routes__
+    |> Enum.map(&find_controller/1)
+    |> Enum.uniq()
+    |> Enum.filter(&(function_exported?(&1, :swagger_definitions, 0)))
+    |> Enum.map(&(apply(&1, :swagger_definitions, [])))
+    |> Enum.reduce(swagger_map, fn definitions, acc ->
+        %{acc | definitions: Map.merge(acc.definitions, definitions)}
+      end)
+  end
+
+  defp collect_paths(swagger_map) do
+    router_module.__routes__
+    |> Enum.map(&find_swagger_path_function/1)
+    |> Enum.filter(fn {controller, func} ->
+        function_exported?(controller, func, 0)
+      end)
+    |> Enum.map(fn {controller, func} -> apply(controller, func, []) end)
+    |> Enum.reduce(swagger_map, fn path, acc ->
+        %{acc | paths: Map.merge(acc.paths, path, fn _, m1, m2 -> Map.merge(m1, m2) end)}
+      end)
+  end
+
+  defp find_controller(route_map) do
+    Module.concat([:Elixir | Module.split(route_map.plug)])
+  end
+
+  defp find_swagger_path_function(route_map) do
+    controller = find_controller(route_map)
+    swagger_fun = "swagger_path_#{to_string(route_map.opts)}" |> String.to_atom
+
+    if Code.ensure_loaded?(controller) == false do
+      raise "Error: #{controller} module didn't load."
+    else
+      {controller, swagger_fun}
     end
   end
 
-  @doc false
   defp format_path(path) do
     case String.split(path, ":") do
       [_] -> path
@@ -179,31 +128,31 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     end
   end
 
-  @doc false
-  defp get_api_routes(router_mod) do
-    Enum.filter(router_mod.__routes__,
-      fn(route_path) ->
-        route_path.pipe_through == [:api]
-      end)
+  defp app_module do
+    Project.get.application[:mod]
+    |> elem(0)
   end
 
-  @doc false
-  defp get_parameters(parameters) do
-    Enum.map(parameters,
-      fn({:param, params_list}) ->
-        Enum.into(params_list, %{})
-      end) |> :lists.flatten
+  defp app_name do
+    Project.get.project[:app]
   end
 
-  @doc false
-  defp get_api(app_mod, route_map) do
-    controller = Module.concat([:Elixir | Module.split(route_map.plug)])
-    swagger_fun = ("swagger_" <> to_string(route_map.opts)) |> String.to_atom
-    if Code.ensure_loaded?(controller) == false do
-      raise "Error: #{controller} module didn't load."
-    else
-      {controller, swagger_fun}
-    end
+  defp router_module do
+    Module.concat([app_module, :Router])
+  end
+
+  defp ebin do
+    "#{@app_path}_build/#{Mix.env}/lib/#{app_name}/ebin"
+  end
+
+  defp default_outline do
+    %{
+      swagger: "2.0",
+      info: %{
+        title: @default_title,
+        version: @default_version,
+      }
+    }
   end
 
 end
