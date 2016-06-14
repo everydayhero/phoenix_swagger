@@ -75,57 +75,61 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     router_module.__routes__
     |> Enum.map(&find_controller/1)
     |> Enum.uniq()
-    |> Enum.filter(&(function_exported?(&1, :swagger_definitions, 0)))
-    |> Enum.map(&(apply(&1, :swagger_definitions, [])))
-    |> Enum.reduce(swagger_map, fn definitions, acc ->
-        %{acc | definitions: Map.merge(acc.definitions, definitions)}
-      end)
-  end
-
-  defp collect_paths(swagger_map) do
-    router_module.__routes__
-    |> Enum.map(&find_swagger_path_function/1)
-    |> Enum.filter(fn {controller, func} ->
-        function_exported?(controller, func, 0)
-      end)
-    |> Enum.map(fn {controller, func} -> apply(controller, func, []) end)
-    |> Enum.reduce(swagger_map, fn path, acc ->
-        %{acc | paths: Map.merge(acc.paths, path, fn _, m1, m2 -> Map.merge(m1, m2) end)}
-      end)
+    |> Enum.filter(&function_exported?(&1, :swagger_definitions, 0))
+    |> Enum.map(&apply(&1, :swagger_definitions, []))
+    |> Enum.reduce(swagger_map, &merge_definitions/2)
   end
 
   defp find_controller(route_map) do
     Module.concat([:Elixir | Module.split(route_map.plug)])
   end
 
+  defp merge_definitions(definitions, swagger_map = %{definitions: existing}) do
+    %{swagger_map | definitions: Map.merge(existing, definitions)}
+  end
+
+  defp collect_paths(swagger_map) do
+    router_module.__routes__
+    |> Enum.map(&find_swagger_path_function/1)
+    |> Enum.filter(&controller_function_exported/1)
+    |> Enum.map(&get_swagger_path/1)
+    |> Enum.reduce(swagger_map, &merge_paths/2)
+  end
+
   defp find_swagger_path_function(route_map) do
     controller = find_controller(route_map)
     swagger_fun = "swagger_path_#{to_string(route_map.opts)}" |> String.to_atom
 
-    if Code.ensure_loaded?(controller) == false do
+    unless Code.ensure_loaded?(controller) do
       raise "Error: #{controller} module didn't load."
-    else
-      {controller, swagger_fun}
     end
+
+    %{
+      controller: controller,
+      swagger_fun: swagger_fun,
+      path: format_path(route_map.path)
+    }
   end
 
   defp format_path(path) do
-    case String.split(path, ":") do
-      [_] -> path
-      path_list ->
-        List.foldl(path_list, "", fn(p, acc) ->
-          if not String.starts_with?(p, "/") do
-            [parameter | rest] = String.split(p, "/")
-            parameter = acc <> "{" <> parameter <> "}"
-            case rest do
-              [] -> parameter
-              _ ->  parameter <> "/" <> Enum.join(rest, "/")
-            end
-          else
-            acc <> p
-          end
-        end)
-    end
+    Regex.replace(~r/:([^\/]+)/, path, "{\\1}")
+  end
+
+  defp controller_function_exported(%{controller: controller, swagger_fun: fun}) do
+    function_exported?(controller, fun, 0)
+  end
+
+  defp get_swagger_path(%{controller: controller, swagger_fun: fun, path: path}) do
+    %{^path => _action} = apply(controller, fun, [])
+  end
+
+  defp merge_paths(path, swagger_map) do
+    paths = Map.merge(swagger_map.paths, path, &merge_conflicts/3)
+    %{swagger_map | paths: paths}
+  end
+
+  defp merge_conflicts(_key, value1, value2) do
+    Map.merge(value1, value2)
   end
 
   defp app_module do
@@ -154,5 +158,4 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
       }
     }
   end
-
 end
