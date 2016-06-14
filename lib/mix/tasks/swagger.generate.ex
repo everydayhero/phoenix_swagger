@@ -26,7 +26,7 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   @swagger_file_path @app_path <> @swagger_file_name
 
   def run([]), do: run(@swagger_file_path)
-  def run([output_file]), do: run(output_file)
+  def run([output_file | _ignored]), do: run(output_file)
   def run(output_file) when is_binary(output_file) do
     Code.append_path(ebin)
     File.write(output_file, swagger_documentation)
