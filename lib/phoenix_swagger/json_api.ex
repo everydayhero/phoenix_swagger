@@ -77,18 +77,50 @@ defmodule PhoenixSwagger.JsonApi do
     }
   end
 
+  def single(resource) do
+    %Schema {
+      type: :object,
+      description: "A JSON-API document with a single [#{resource}](##{resource |> to_string |> String.downcase}) resource",
+      properties: %{
+        links: %Schema {
+          type:  :object,
+          properties: %{
+            self: %Schema {
+              type:  :string,
+              description:  "the link that generated the current response document."
+            }
+          },
+          required:  [:self]
+        },
+        data: %Schema {
+          "$ref": "#/definitions/#{resource}"
+        },
+        included: %Schema {
+          type: :array,
+          description: "Included resources"
+        }
+      },
+      required:  [:links, :data]
+    }
+  end
+
   @doc """
   Defines schemas for a JSON-API resource, and a paginated list of results.
   """
   defmacro resource(name, plural, expr) do
+    resource_name = "#{name}Resource"
     quote do
       import unquote(__MODULE__)
       [
         {
-          (unquote(name) |> to_string),
+          unquote(resource_name),
           %Schema {
             type: :object,
             properties: %{
+              type: %Schema{type: :string, description: "The JSON-API resource type"},
+              id: %Schema{type: :string, description: "The JSON-API resource ID"},
+              relationships: %Schema{type: :object, properties: %{}},
+              links: %Schema{type: :object, properties: %{}},
               attributes: %Schema{
                 type: :object,
                 properties: %{}
@@ -98,8 +130,12 @@ defmodule PhoenixSwagger.JsonApi do
           |> unquote(Util.pipeline_body(expr))
         },
         {
+          (unquote(name) |> to_string),
+          single(unquote(resource_name))
+        },
+        {
           (unquote(plural) |> to_string),
-          page(unquote(name))
+          page(unquote(resource_name))
         }
       ]
     end
@@ -160,5 +196,43 @@ defmodule PhoenixSwagger.JsonApi do
     end
 
     put_in model.properties.attributes.required, required
+  end
+
+  @doc """
+  Defines a link with name and description
+  """
+  def link(model = %Schema{}, name, description) do
+    put_in(
+      model.properties.links.properties[name],
+      %Schema{type: :string, description: description}
+    )
+  end
+
+  @doc """
+  Defines a relatioship
+  """
+  def relationship(model = %Schema{}, name) do
+    put_in(
+      model.properties.relationships.properties[name],
+      %Schema{
+        type: :object,
+        properties: %{
+          links: %Schema{
+            type: :object,
+            properties: %{
+              self: %Schema{type: :string, description: "Relationship link for #{name}"},
+              related: %Schema{type: :string, description: "Related #{name} link"} 
+            }
+          },
+          data: %Schema{
+            type: :object,
+            properties: %{
+              id: %Schema{type: :string, description: "Related #{name} resource id"},
+              type: %Schema{type: :string, description: "Type of related #{name} resource"}
+            }
+          }
+        }
+      }
+    )
   end
 end
