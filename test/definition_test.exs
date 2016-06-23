@@ -1,5 +1,6 @@
 defmodule PhoenixSwagger.JsonApiTest do
   use ExUnit.Case
+  alias PhoenixSwagger.Schema
   import PhoenixSwagger
 
   doctest PhoenixSwagger.JsonApi
@@ -8,22 +9,30 @@ defmodule PhoenixSwagger.JsonApiTest do
     JsonApi.resource(:User, :Users) do
       description "A user that may have one or more supporter pages."
       attributes do
+        phone :string, "Users phone number"
+        full_name :string, "Full name"
         user_updated_at :string, "Last update timestamp UTC", format: "ISO-8601"
         user_created_at :string, "First created timestamp UTC"
-        street_address :string, "Street address"
-        region :string, "The users region"
-        postal_code :string, "The users postal / zip code"
-        phone :string, "Users phone number"
-        locality :string, "???"
-        full_name :string, "Full name"
-        extended_address :string, "Extended address"
         email :string, "Email", required: true
-        country :string, "Country"
         birthday :string, "Birthday in YYYY-MM-DD format"
+        address Schema.ref(:Address)
       end
       link :self, "The link to this user resource"
       relationship :posts
     end
+
+    {:Address, %Schema{
+        type: "object",
+        properties: %{
+          street_address: %Schema{type: :string, description: "Street address"},
+          region: %Schema{type: :string, description: "The users region"},
+          postal_code: %Schema{type: :string, description: "The users postal / zip code"},
+          locality: %Schema{type: :string, description: "???"},
+          extended_address: %Schema{type: :string, description: "Extended address"},
+          country: %Schema{type: :string, description: "Country"}
+        }
+      }
+    }
   end
 
   test "produces expected paginated users schema" do
@@ -90,6 +99,21 @@ defmodule PhoenixSwagger.JsonApiTest do
     }
   end
 
+  test "produces expected address schema" do
+    address_resource_schema = swagger_definitions["Address"]
+    assert address_resource_schema == %{
+      "properties" => %{
+        "country" => %{"description" => "Country", "type" => "string"},
+        "extended_address" => %{"description" => "Extended address", "type" => "string"},
+        "locality" => %{"description" => "???", "type" => "string"},
+        "postal_code" => %{"description" => "The users postal / zip code", "type" => "string"},
+        "region" => %{"description" => "The users region", "type" => "string"},
+        "street_address" => %{"description" => "Street address", "type" => "string"}
+      },
+      "type" => "object"
+    }
+  end
+
   test "produces expected user resource schema" do
     user_resource_schema = swagger_definitions["UserResource"]
     assert user_resource_schema == %{
@@ -101,16 +125,11 @@ defmodule PhoenixSwagger.JsonApiTest do
         "attributes" => %{
           "type" => "object",
           "properties" => %{
+            "address" => %{"$ref" => "#/definitions/Address"},
             "birthday" => %{ "description" => "Birthday in YYYY-MM-DD format", "type" => "string"},
-            "country" => %{"description" => "Country", "type" => "string"},
             "email" => %{"description" => "Email", "type" => "string"},
-            "extended_address" => %{"description" => "Extended address", "type" => "string"},
             "full_name" => %{"description" => "Full name", "type" => "string"},
-            "locality" => %{"description" => "???", "type" => "string"},
             "phone" => %{"description" => "Users phone number", "type" => "string"},
-            "postal_code" => %{"description" => "The users postal / zip code", "type" => "string"},
-            "region" => %{"description" => "The users region", "type" => "string"},
-            "street_address" => %{"description" => "Street address", "type" => "string"},
             "user_created_at" => %{"description" => "First created timestamp UTC", "type" => "string"},
             "user_updated_at" => %{"description" => "Last update timestamp UTC", "type" => "string", "format" => "ISO-8601"}
           },
