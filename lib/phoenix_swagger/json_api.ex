@@ -188,7 +188,7 @@ defmodule PhoenixSwagger.JsonApi do
           %Schema{type: type, description: description},
           fn {k, v}, acc -> %{acc | k => v} end)
 
-    model = put_in model.properties.attributes.properties[name], schema
+    model = attribute(model, name, schema)
 
     required = case {model.properties.attributes.required, opts[:required]} do
       {nil, true} -> [name]
@@ -197,6 +197,9 @@ defmodule PhoenixSwagger.JsonApi do
     end
 
     put_in model.properties.attributes.required, required
+  end
+  def attribute(model = %Schema{}, name, schema) do
+    put_in model.properties.attributes.properties[name], schema
   end
 
   @doc """
