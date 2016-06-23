@@ -97,7 +97,8 @@ defmodule PhoenixSwagger.JsonApi do
         },
         included: %Schema {
           type: :array,
-          description: "Included resources"
+          description: "Included resources",
+          items: %Schema{}
         }
       },
       required:  [:links, :data]
@@ -221,7 +222,7 @@ defmodule PhoenixSwagger.JsonApi do
             type: :object,
             properties: %{
               self: %Schema{type: :string, description: "Relationship link for #{name}"},
-              related: %Schema{type: :string, description: "Related #{name} link"} 
+              related: %Schema{type: :string, description: "Related #{name} link"}
             }
           },
           data: %Schema{
