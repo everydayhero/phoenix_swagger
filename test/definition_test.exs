@@ -15,6 +15,7 @@ defmodule PhoenixSwagger.JsonApiTest do
         user_created_at :string, "First created timestamp UTC"
         email :string, "Email", required: true
         birthday :string, "Birthday in YYYY-MM-DD format"
+        country :string, "Country"
         address Schema.ref(:Address)
       end
       link :self, "The link to this user resource"
@@ -53,7 +54,6 @@ defmodule PhoenixSwagger.JsonApiTest do
             "prev" => %{"description" => "Link to the previous page of results", "type" => "string"},
             "self" => %{"description" => "Link to this page of results", "type" => "string"}
           },
-          "required" => ["self", "prev", "next", "last", "first"],
           "type" => "object"
         },
         "meta" => %{
@@ -62,11 +62,10 @@ defmodule PhoenixSwagger.JsonApiTest do
               "description" => "The total number of pages available", "type" => "integer"
             }
           },
-          "required" => ["total-pages"],
           "type" => "object"
         }
       },
-      "required" => ["meta", "links", "data"],
+      "required" => ["data"],
       "type" => "object"
     }
   end
@@ -86,7 +85,6 @@ defmodule PhoenixSwagger.JsonApiTest do
               "type" => "string"
             }
           },
-          "required" => ["self"],
           "type" => "object"
         },
         "included" => %{
@@ -95,7 +93,7 @@ defmodule PhoenixSwagger.JsonApiTest do
           "items" => %{}
         }
       },
-      "required" => ["links", "data"],
+      "required" => ["data"],
       "type" => "object"
     }
   end

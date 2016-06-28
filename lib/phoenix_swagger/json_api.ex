@@ -21,7 +21,7 @@ defmodule PhoenixSwagger.JsonApi do
   alias PhoenixSwagger.Schema
 
   @doc """
-  Defines a schema for a paged list of results.
+  Defines a schema for a top level json-api document with an array of resources as primary data.
   This is used automatically from the JsonApi.resource macro is used.
   """
   def page(resource) do
@@ -36,8 +36,7 @@ defmodule PhoenixSwagger.JsonApi do
               type: :integer,
               description: "The total number of pages available"
             }
-          },
-          required: [:"total-pages"]
+          }
         },
         links: %Schema {
           type:  :object,
@@ -62,8 +61,7 @@ defmodule PhoenixSwagger.JsonApi do
               type:  :string,
               description:  "Link to the first page of results"
             }
-          },
-          required:  [:self, :prev, :next, :last, :first]
+          }
         },
         data: %Schema {
           type:  :array,
@@ -73,10 +71,14 @@ defmodule PhoenixSwagger.JsonApi do
           }
         }
       },
-      required:  [:meta, :links, :data]
+      required:  [:data]
     }
   end
 
+  @doc """
+  Defines a schema for a top level json-api document with a single primary data resource.
+  This is used automatically from the JsonApi.resource macro is used.
+  """
   def single(resource) do
     %Schema {
       type: :object,
@@ -89,8 +91,7 @@ defmodule PhoenixSwagger.JsonApi do
               type:  :string,
               description:  "the link that generated the current response document."
             }
-          },
-          required:  [:self]
+          }
         },
         data: %Schema {
           "$ref": "#/definitions/#{resource}"
@@ -101,7 +102,7 @@ defmodule PhoenixSwagger.JsonApi do
           items: %Schema{}
         }
       },
-      required:  [:links, :data]
+      required:  [:data]
     }
   end
 
@@ -213,7 +214,7 @@ defmodule PhoenixSwagger.JsonApi do
   end
 
   @doc """
-  Defines a relatioship
+  Defines a relationship
   """
   def relationship(model = %Schema{}, name) do
     put_in(
