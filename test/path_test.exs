@@ -32,15 +32,16 @@ defmodule PhoenixSwagger.PathTest do
               "in" => "query",
               "name" => "page[size]",
               "required" => false,
-              "type" => "integer"
+              "type" => "integer",
+              "minimum" => 1
             },
             %{
-              "description" =>
-              "Number of the page",
+              "description" => "Number of the page",
               "in" => "query",
               "name" => "page[number]",
               "required" => false,
-              "type" => "integer"
+              "type" => "integer",
+              "minimum" => 1
             },
             %{
               "description" => "Gender of the user",

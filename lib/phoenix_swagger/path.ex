@@ -170,8 +170,8 @@ defmodule PhoenixSwagger.Path do
   """
   def paging(path = %PathObject{}, page_size_arg \\ "page[size]", page_num_arg \\ "page[number]") do
     path
-    |> parameter(page_size_arg, :query, :integer, "Number of elements per page")
-    |> parameter(page_num_arg, :query, :integer, "Number of the page")
+    |> parameter(page_size_arg, :query, :integer, "Number of elements per page", minimum: 1)
+    |> parameter(page_num_arg, :query, :integer, "Number of the page", minimum: 1)
   end
 
   @doc """
