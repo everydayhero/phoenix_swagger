@@ -31,7 +31,7 @@ defmodule PhoenixSwagger do
   defmacro swagger_definitions([do: expr]) do
     quote do
       def swagger_definitions do
-        require PhoenixSwagger.JsonApi 
+        require PhoenixSwagger.JsonApi
         alias PhoenixSwagger.JsonApi
         alias PhoenixSwagger.Schema
         import PhoenixSwagger.Schema
