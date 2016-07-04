@@ -15,7 +15,6 @@ defmodule PhoenixSwagger.JsonApiTest do
         user_created_at :string, "First created timestamp UTC"
         email :string, "Email", required: true
         birthday :string, "Birthday in YYYY-MM-DD format"
-        country :string, "Country"
         address Schema.ref(:Address)
       end
       link :self, "The link to this user resource"
