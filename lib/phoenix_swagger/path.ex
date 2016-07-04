@@ -11,7 +11,7 @@ defmodule PhoenixSwagger.Path do
       get "/users"
       produces "application/json"
       paging
-      parameter :id, :query, :integer, "user id", :required
+      parameter :id, :query, :integer, "user id", required: true
       tag "Users"
       response 200 "User resource" :User
       response 404 "User not found"
