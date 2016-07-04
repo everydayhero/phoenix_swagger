@@ -107,9 +107,9 @@ defmodule PhoenixSwagger.JsonApi do
   end
 
   @doc """
-  Defines schemas for a JSON-API resource, and a paginated list of results.
+  Defines schemas for a JSON-API resource, without a pluralized paginated version.
   """
-  defmacro resource(name, plural, expr) do
+  defmacro resource(name, expr) do
     resource_name = "#{name}Resource"
     quote do
       import unquote(__MODULE__)
@@ -134,7 +134,19 @@ defmodule PhoenixSwagger.JsonApi do
         {
           (unquote(name) |> to_string),
           single(unquote(resource_name))
-        },
+        }
+      ]
+    end
+  end
+
+  @doc """
+  Defines schemas for a JSON-API resource, with a pluralized paginated version.
+  """
+  defmacro resource(name, plural, expr) do
+    resource_name = "#{name}Resource"
+    quote do
+      import unquote(__MODULE__)
+      resource(unquote(name), unquote(expr)) ++ [
         {
           (unquote(plural) |> to_string),
           page(unquote(resource_name))

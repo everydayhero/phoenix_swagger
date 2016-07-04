@@ -22,6 +22,16 @@ defmodule PhoenixSwagger.JsonApiTest do
       relationship :posts
     end
 
+    JsonApi.resource(:Token) do
+      description "A security token."
+      attributes do
+        token :string, "The bearer token"
+        inserted_at :string, "First created timestamp UTC", format: "date-time"
+        updated_at :string, "Last update timestamp UTC", format: "date-time"
+      end
+      link :self, "The link to this user resource"
+    end
+
     {:Address, %Schema{
         type: "object",
         properties: %{
@@ -165,6 +175,63 @@ defmodule PhoenixSwagger.JsonApiTest do
           }
         }
       }
+    }
+  end
+
+  test "Plural resource is optional" do
+    assert swagger_definitions["Token"] == %{
+      "description" => "A JSON-API document with a single [TokenResource](#tokenresource) resource",
+      "properties" => %{
+        "data" => %{
+          "$ref" => "#/definitions/TokenResource"
+        },
+        "included" => %{
+          "description" => "Included resources",
+          "items" => %{},
+          "type" => "array"
+        },
+        "links" => %{
+          "properties" => %{
+            "self" => %{"description" => "the link that generated the current response document.", "type" => "string"}
+          },
+          "type" => "object"}
+        },
+        "required" => ["data"],
+        "type" => "object"
+      }
+
+    assert swagger_definitions["TokenResource"] == %{
+      "description" => "A security token.",
+      "properties" => %{
+        "attributes" => %{
+          "properties" =>
+          %{
+            "inserted_at" => %{"description" => "First created timestamp UTC", "format" => "date-time", "type" => "string"},
+            "token" => %{"description" => "The bearer token", "type" => "string"},
+            "updated_at" => %{"description" => "Last update timestamp UTC", "format" => "date-time", "type" => "string"}
+          },
+          "type" => "object"
+        },
+        "id" => %{
+          "description" => "The JSON-API resource ID", "type" => "string"
+        },
+        "links" => %{
+          "properties" => %{
+            "self" => %{
+              "description" => "The link to this user resource", "type" => "string"
+            }
+          },
+          "type" => "object"
+        },
+        "relationships" => %{
+          "properties" => %{},
+          "type" => "object"
+        },
+        "type" => %{
+          "description" => "The JSON-API resource type", "type" => "string"
+        }
+      },
+      "type" => "object"
     }
   end
 end
