@@ -25,7 +25,7 @@ Now you can use `phoenix_swagger` to generate `swagger-ui` file for you applicat
 
 ## Usage
 
-You must provide `swagger_spec/0` function in your `mix.exs` file. This function must
+You must provide `swagger_spec/0` function in your `Router.ex` file. This function must
 return a map that contains the structure of a [swagger object](http://swagger.io/specification/#swaggerObject)
 This defines the skeleton of your swagger spec, with the `paths` and `definitions` sections being filled in by phoenix_swagger.
 
