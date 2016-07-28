@@ -29,6 +29,7 @@ defmodule PhoenixSwagger.Mixfile do
   defp deps do
     [
       {:credo, "~> 0.3", only: [:dev, :test]},
+      {:poison, "~> 2.0"}
     ]
   end
 end

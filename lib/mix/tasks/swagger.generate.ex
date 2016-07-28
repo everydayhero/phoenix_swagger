@@ -11,7 +11,9 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
 
       mix phoenix.swagger.generate
 
-      mix phoenix.swagger.generate ../swagger.json
+      mix phoenix.swagger.generate --output ../swagger.json
+
+      mix phoenix.swagger.generate --output ../swagger.json --router MyApp.Router
   """
 
   @default_port 4000
@@ -22,36 +24,58 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     |> Enum.at(0)
     |> String.split("_build")
     |> Enum.at(0)
-  @swagger_file_name "swagger.json"
-  @swagger_file_path @app_path <> @swagger_file_name
+  @default_swagger_file_path @app_path <> "swagger.json"
 
-  def run([]), do: run(@swagger_file_path)
-  def run([output_file | _ignored]), do: run(output_file)
-  def run(output_file) when is_binary(output_file) do
+  def run(args) do
     Code.append_path(ebin)
-    File.write(output_file, swagger_documentation)
-    Code.delete_path(ebin)
-    IO.puts "Documentation generated to #{output_file}"
-  end
-  def run(_) do
-    IO.puts """
-    Usage: mix phoenix.swagger.generate [FILE]
+    {switches, _params, _unknown} = OptionParser.parse(
+      args,
+      switches: [output: :string, router: :string, help: :boolean],
+      aliases: [o: :output, r: :router, h: :help])
 
-    With no FILE, default swagger file - #{@swagger_file_path}.
+    if (Keyword.get(switches, :help)) do
+      usage
+    else
+      output_file = Keyword.get(switches, :output, @default_swagger_file_path)
+      router = load_router(switches)
+      File.write(output_file, swagger_documentation(router))
+      Code.delete_path(ebin)
+      IO.puts "Documentation generated to #{output_file}"
+    end
+  end
+
+  def usage do
+    IO.puts """
+    Usage: mix phoenix.swagger.generate --output FILE --router ROUTER
+
+    With no FILE, default swagger file - #{@default_swagger_file_path}
+    With no ROUTER, defaults to - <Application>.Router
     """
   end
 
-  defp swagger_documentation do
-    collect_outline
+  defp load_router(switches) do
+    {:module, router} =
+      switches
+      |> Keyword.get(:router, default_router_module)
+      |> List.wrap
+      |> Module.concat()
+      |> Code.ensure_loaded()
+
+    router
+  end
+
+  defp swagger_documentation(router) do
+    router
+    |> collect_outline
     |> collect_host
-    |> collect_paths
-    |> collect_definitions
+    |> collect_paths(router)
+    |> collect_definitions(router)
     |> Poison.encode!(pretty: true)
   end
 
-  defp collect_outline() do
-    if function_exported?(Project.get, :swagger_spec, 0) do
-      Project.get.swagger_spec
+  defp collect_outline(router) do
+    if function_exported?(router, :swagger_spec, 0) do
+      router.swagger_spec
     else
       default_outline()
     end
@@ -73,8 +97,8 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     end
   end
 
-  defp collect_definitions(swagger_map) do
-    router_module.__routes__
+  defp collect_definitions(swagger_map, router) do
+    router.__routes__
     |> Enum.map(&find_controller/1)
     |> Enum.uniq()
     |> Enum.filter(&function_exported?(&1, :swagger_definitions, 0))
@@ -90,8 +114,8 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     %{swagger_map | definitions: Map.merge(existing, definitions)}
   end
 
-  defp collect_paths(swagger_map) do
-    router_module.__routes__
+  defp collect_paths(swagger_map, router) do
+    router.__routes__
     |> Enum.map(&find_swagger_path_function/1)
     |> Enum.filter(&controller_function_exported/1)
     |> Enum.map(&get_swagger_path/1)
@@ -143,7 +167,7 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     Project.get.project[:app]
   end
 
-  defp router_module do
+  defp default_router_module do
     Module.concat([app_module, :Router])
   end
 
