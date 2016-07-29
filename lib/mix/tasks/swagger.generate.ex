@@ -40,7 +40,6 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
       output_file = Keyword.get(switches, :output, @default_swagger_file_path)
       router = load_router(switches)
       File.write(output_file, swagger_documentation(router))
-      Code.delete_path(ebin)
       IO.puts "Documentation generated to #{output_file}"
     end
   end
