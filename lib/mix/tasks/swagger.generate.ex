@@ -27,6 +27,7 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   @default_swagger_file_path @app_path <> "swagger.json"
 
   def run(args) do
+    Mix.Task.reenable("phoenix.swagger.generate")
     Code.append_path(ebin)
     {switches, _params, _unknown} = OptionParser.parse(
       args,
