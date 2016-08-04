@@ -70,8 +70,8 @@ defmodule PhoenixSwagger.Path do
       description: "",
       externalDocs: nil,
       operationId: "",
-      consumes: [],
-      produces: [],
+      consumes: nil,
+      produces: nil,
       parameters: [],
       responses: %{},
       deprecated: nil,
@@ -124,14 +124,14 @@ defmodule PhoenixSwagger.Path do
   Adds a mime-type to the consumes list of the operation of a swagger %PathObject{}
   """
   def consumes(path = %PathObject{}, mimetype) do
-    put_in path.operation.consumes, path.operation.consumes ++ [mimetype]
+    put_in path.operation.consumes, (path.operation.consumes || []) ++ [mimetype]
   end
 
   @doc """
   Adds a mime-type to the produces list of the operation of a swagger %PathObject{}
   """
   def produces(path = %PathObject{}, mimetype) do
-    put_in path.operation.produces, path.operation.produces ++ [mimetype]
+    put_in path.operation.produces, (path.operation.produces || []) ++ [mimetype]
   end
 
   @doc """

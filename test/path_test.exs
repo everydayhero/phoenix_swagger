@@ -20,7 +20,6 @@ defmodule PhoenixSwagger.PathTest do
     assert swagger_path_index == %{
       "/api/v1/users" => %{
         "get" => %{
-          "consumes" => [],
           "produces" => ["application/json"],
           "tags" => ["Users"],
           "operationId" => "PhoenixSwagger.PathTest.index",
