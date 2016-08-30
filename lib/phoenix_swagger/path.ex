@@ -2,20 +2,21 @@ defmodule PhoenixSwagger.Path do
   @moduledoc """
   Defines the swagger path DSL for specifying Controller actions.
   This module should not be imported directly, it will be automatically imported
-   in the scope of a swagger_path macro body.
+   in the scope of a `swagger_path` macro body.
 
   ## Examples
-    use PhoenixSwagger
 
-    swagger_path :index do
-      get "/users"
-      produces "application/json"
-      paging
-      parameter :id, :query, :integer, "user id", required: true
-      tag "Users"
-      response 200 "User resource" :User
-      response 404 "User not found"
-    end
+      use PhoenixSwagger
+
+      swagger_path :index do
+        get "/users"
+        produces "application/json"
+        paging
+        parameter :id, :query, :integer, "user id", required: true
+        tag "Users"
+        response 200 "User resource" :User
+        response 404 "User not found"
+      end
   """
 
   alias PhoenixSwagger.Schema
@@ -107,49 +108,49 @@ defmodule PhoenixSwagger.Path do
 
 
   @doc """
-  Adds the summary section to the operation of a swagger %PathObject{}
+  Adds the summary section to the operation of a swagger `%PathObject{}`
   """
   def summary(path = %PathObject{}, summary) do
     put_in path.operation.summary, summary
   end
 
   @doc """
-  Adds the description section to the operation of a swagger %PathObject{}
+  Adds the description section to the operation of a swagger `%PathObject{}`
   """
   def description(path = %PathObject{}, description) do
     put_in path.operation.description, description
   end
 
   @doc """
-  Adds a mime-type to the consumes list of the operation of a swagger %PathObject{}
+  Adds a mime-type to the consumes list of the operation of a swagger `%PathObject{}`
   """
   def consumes(path = %PathObject{}, mimetype) do
     put_in path.operation.consumes, (path.operation.consumes || []) ++ [mimetype]
   end
 
   @doc """
-  Adds a mime-type to the produces list of the operation of a swagger %PathObject{}
+  Adds a mime-type to the produces list of the operation of a swagger `%PathObject{}`
   """
   def produces(path = %PathObject{}, mimetype) do
     put_in path.operation.produces, (path.operation.produces || []) ++ [mimetype]
   end
 
   @doc """
-  Adds a tag to the operation of a swagger %PathObject{}
+  Adds a tag to the operation of a swagger `%PathObject{}`
   """
   def tag(path = %PathObject{}, tag) do
     put_in path.operation.tags, path.operation.tags ++ [tag]
   end
 
   @doc """
-  Adds the operationId section to the operation of a swagger %PathObject{}
+  Adds the operationId section to the operation of a swagger `%PathObject{}`
   """
   def operation_id(path = %PathObject{}, id) do
     put_in path.operation.operationId, id
   end
 
   @doc """
-  Adds a parameter to the operation of a swagger %PathObject{}
+  Adds a parameter to the operation of a swagger `%PathObject{}`
   """
   def parameter(path = %PathObject{}, name, location, type, description, opts \\ []) do
     param = %Parameter{
@@ -164,7 +165,7 @@ defmodule PhoenixSwagger.Path do
   end
 
   @doc """
-  Adds page size and page number parameters to the operation of a swagger %PathObject{}
+  Adds page size and page number parameters to the operation of a swagger `%PathObject{}`
 
   The names default to  "page[size]" and "page[number]", but can be overridden.
   """
@@ -175,7 +176,7 @@ defmodule PhoenixSwagger.Path do
   end
 
   @doc """
-  Adds a response to the operation of a swagger %PathObject{}, without a schema
+  Adds a response to the operation of a swagger `%PathObject{}`, without a schema
   """
   def response(path = %PathObject{}, status, description) do
     resp = %ResponseObject{description: description}
@@ -183,7 +184,7 @@ defmodule PhoenixSwagger.Path do
   end
 
   @doc """
-  Adds a parameter to the operation of a swagger %PathObject{}, with a schema
+  Adds a parameter to the operation of a swagger `%PathObject{}`, with a schema
   """
   def response(path = %PathObject{}, status, description, schema) when is_atom(schema)  do
     resp = %ResponseObject{description: description, schema: %{"$ref" => "#/definitions/#{schema}"}}
@@ -195,7 +196,7 @@ defmodule PhoenixSwagger.Path do
   end
 
   @doc """
-  Converts the %PathObject{} struct into the nested JSON form expected by swagger
+  Converts the `%PathObject{}` struct into the nested JSON form expected by swagger
   """
   def nest(path = %PathObject{}) do
     %{path.path => %{path.verb => path.operation}}
