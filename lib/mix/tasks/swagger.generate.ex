@@ -44,7 +44,7 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
     end
   end
 
-  def usage do
+  defp usage do
     IO.puts """
     Usage: mix phoenix.swagger.generate --output FILE --router ROUTER
 
