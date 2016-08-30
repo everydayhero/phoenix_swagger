@@ -42,6 +42,9 @@ defmodule PhoenixSwagger.Schema do
       %PhoenixSwagger.Schema{'$ref': path}
     end
 
+    @doc """
+    Sets the description for the schema
+    """
     def description(model = %PhoenixSwagger.Schema{}, desc) do
       %{model | description: desc}
     end
