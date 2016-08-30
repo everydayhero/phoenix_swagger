@@ -3,18 +3,18 @@ defmodule PhoenixSwagger.JsonApi do
   This module defines a DSL for defining swagger definitions in a JSON-API conformant format.s
 
   ## Examples
-    import PhoenixSwagger
+      import PhoenixSwagger
 
-    swagger_definitions do
-      JsonApi.resource(:User, :Users) do
-        description "A user that may have one or more supporter pages."
-        attributes do
-          user_updated_at :string, "Last update timestamp UTC", format: "ISO-8601"
-          user_created_at :string, "First created timestamp UTC"
-          street_address :string, "Street address"
+      swagger_definitions do
+        JsonApi.resource(:User, :Users) do
+          description "A user that may have one or more supporter pages."
+          attributes do
+            user_updated_at :string, "Last update timestamp UTC", format: "ISO-8601"
+            user_created_at :string, "First created timestamp UTC"
+            street_address :string, "Street address"
+          end
         end
       end
-    end
   """
 
   alias PhoenixSwagger.Util
@@ -158,20 +158,21 @@ defmodule PhoenixSwagger.JsonApi do
   @doc """
   Defines a block of attributes for a JSON-API resource.
   Within this block, each function call will be translated into a
-  call to the :attribute function.
+  call to the `PhoenixSwagger.JsonApi.attribute` function.
 
   ## Example
 
-  description("A User")
-  attributes do
-    name :string, "Full name of the user", required: true
-    dateOfBirth :string, "Date of Birth", format: "ISO-8601", required: false
-  end
+      description("A User")
+      attributes do
+        name :string, "Full name of the user", required: true
+        dateOfBirth :string, "Date of Birth", format: "ISO-8601", required: false
+      end
 
   translates to:
-  description("A User")
-  |> attribute(:name, :string, "Full name of the user", required: true)
-  |> attribute(:dateOfBirth, :string, "Date of Birth", format: "ISO-8601", required: false)
+
+      description("A User")
+      |> attribute(:name, :string, "Full name of the user", required: true)
+      |> attribute(:dateOfBirth, :string, "Date of Birth", format: "ISO-8601", required: false)
   """
   defmacro attributes(model, [do: {:__block__, _, attrs}]) do
     attrs
@@ -192,7 +193,6 @@ defmodule PhoenixSwagger.JsonApi do
   schema properties can be set through the trailing keyword arguments list.
   As a convenience, required: true can be passed in the keyword args, causing the
    name of this attribute to be added to the "required" list of the attributes schema.
-
   """
   def attribute(model = %Schema{}, name, type, description, opts \\ []) do
     schema = opts
@@ -211,8 +211,12 @@ defmodule PhoenixSwagger.JsonApi do
 
     put_in model.properties.attributes.required, required
   end
-  def attribute(model = %Schema{}, name, schema) do
-    put_in model.properties.attributes.properties[name], schema
+
+  @doc """
+  Defines an attribute of a JSON-API model having the given schema.
+  """
+  def attribute(model = %Schema{}, name, attr_schema) do
+    put_in model.properties.attributes.properties[name], attr_schema
   end
 
   @doc """
