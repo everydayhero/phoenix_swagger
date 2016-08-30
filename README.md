@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/everydayhero/phoenix_swagger.svg?branch=master)](https://travis-ci.org/everydayhero/phoenix_swagger)
 [![Hex Version](https://img.shields.io/hexpm/v/edh_phoenix_swagger.svg)](https://hex.pm/packages/edh_phoenix_swagger)
+[![License](https://img.shields.io/hexpm/l/edh_phoenix_swagger.svg)](https://github.com/everydayhero/phoenix_swagger/blob/master/LICENSE)
 
 # PhoenixSwagger
 
