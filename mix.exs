@@ -1,13 +1,28 @@
 defmodule PhoenixSwagger.Mixfile do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [app: :phoenix_swagger,
-     version: "0.0.1",
+     version: @version, 
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     deps: deps,
+     package: package,
+     docs: [extras: ["README.md"], main: "readme",
+              source_ref: "#{@version}",
+              source_url: "https://github.com/everydayhero/phoenix_swagger"]]
+  end
+
+  def package do
+    [name: :edh_phoenix_swagger,
+     description: "Swagger DSL and Generator for Phoenix projects",
+     files: ["lib", "mix.exs"],
+     maintainers: ["Michael Buhot (m.buhot@gmail.com)", "Nick Chmielewski (nick.chmielewski@everydayhero.com)"],
+     licenses: ["Mozilla Public License 2.0"],
+     links: %{"Github" => "https://github.com/everydayhero/phoenix_swagger"}]
   end
 
   # Configuration for the OTP application
@@ -29,6 +44,7 @@ defmodule PhoenixSwagger.Mixfile do
   defp deps do
     [
       {:credo, "~> 0.3", only: [:dev, :test]},
+      {:ex_doc, ">= 0.13.0", only: :dev},
       {:poison, "~> 2.0"}
     ]
   end
