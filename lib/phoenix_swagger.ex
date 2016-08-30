@@ -2,6 +2,33 @@ defmodule PhoenixSwagger do
   @moduledoc "Generates functions from the PhoenixSwagger DSL into Swagger maps"
   alias PhoenixSwagger.Util
 
+  @doc """
+  Swagger operations (aka "paths") are defined inside a `swagger_path` block.
+
+  Within the do-end block, the DSL provided by the `PhoenixSwagger.Path` module can be used.
+  The DSL always starts with one of the `get`, `put`, `post`, `delete`, `head`, `options` functions,
+  followed by any functions with first argument being a `PhoenixSwagger.Path.PathObject` struct.
+
+  ## Example
+      defmodule ExampleController do
+        use ExampleApp.Web, :controller
+        import PhoenixSwagger
+
+        swagger_path :index do
+          get "/users"
+          summary "Get users"
+          description "Get users, filtering by account ID"
+          parameter :query, :id, :integer, "account id", required: true
+          response 200, "Description", :Users
+          tag "users"
+        end
+
+        def index(conn, _params) do
+          posts = Repo.all(Post)
+          render(conn, "index.json", posts: posts)
+        end
+      end
+  """
   defmacro swagger_path(action, expr) do
     body = Util.pipeline_body(expr)
     fun_name = "swagger_path_#{action}" |> String.to_atom
