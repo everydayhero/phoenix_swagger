@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/everydayhero/phoenix_swagger.svg?branch=master)](https://travis-ci.org/everydayhero/phoenix_swagger)
+
 # PhoenixSwagger
 
 `PhoenixSwagger` is the library that provides [swagger](http://swagger.io/) integration
