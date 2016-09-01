@@ -23,7 +23,7 @@ dependencies in the `mix.exs` file:
 
 ```elixir
 def deps do
-  [{:phoenix_swagger, "~> 0.0.1"}]
+  [{:edh_phoenix_swagger, "~> 0.1"}]
 end
 ```
 
