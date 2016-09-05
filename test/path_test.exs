@@ -11,7 +11,7 @@ defmodule PhoenixSwagger.PathTest do
     produces "application/json"
     tag "Users"
     paging()
-    parameter("filter[gender]", "query", "string", "Gender of the user", required: true)
+    parameter("filter[gender]", "query", "string", "Gender of the user", required: true, example: "Male")
     response(200, "OK", Schema.ref(:Users))
     response(400, "Client Error")
   end
@@ -47,7 +47,8 @@ defmodule PhoenixSwagger.PathTest do
               "in" => "query",
               "name" => "filter[gender]",
               "required" => true,
-              "type" => "string"
+              "type" => "string",
+              "x-example" => "Male"
             }
           ],
           "responses" => %{

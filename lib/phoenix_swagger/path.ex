@@ -159,10 +159,13 @@ defmodule PhoenixSwagger.Path do
       type: type,
       description: description
     }
-    param = Enum.reduce(opts, param, fn {k,v}, acc -> %{acc | k => v} end)
+    param = Map.merge(param, opts |> Enum.into(%{}, &translate_parameter_opt/1))
     params = path.operation.parameters
     put_in path.operation.parameters, params ++ [param]
   end
+
+  defp translate_parameter_opt({:example, v}), do: {:"x-example", v}
+  defp translate_parameter_opt({k, v}), do: {k, v}
 
   @doc """
   Adds page size and page number parameters to the operation of a swagger `%PathObject{}`
