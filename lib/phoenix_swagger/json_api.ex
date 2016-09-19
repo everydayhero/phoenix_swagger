@@ -35,6 +35,10 @@ defmodule PhoenixSwagger.JsonApi do
             "total-pages": %Schema {
               type: :integer,
               description: "The total number of pages available"
+            },
+            "total-count": %Schema {
+              type: :integer,
+              description: "The total number of items available"
             }
           }
         },
@@ -46,11 +50,11 @@ defmodule PhoenixSwagger.JsonApi do
               description:  "Link to this page of results"
             },
             prev: %Schema {
-              type:  :string,
+              type:  [:string, "null"],
               description:  "Link to the previous page of results"
             },
             next: %Schema {
-              type:  :string,
+              type:  [:string, "null"],
               description:  "Link to the next page of results"
             },
             last: %Schema {
