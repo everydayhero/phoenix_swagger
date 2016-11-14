@@ -151,16 +151,17 @@ swagger_definitions do
 end
 ```
 
-This example adds two entries to the [definitions](http://swagger.io/specification/#definitionsObject) section of the swagger document.
+This example adds 3 entries to the [definitions](http://swagger.io/specification/#definitionsObject) section of the swagger document.
 
-* User: containing the declared attributes
-* Users: for paginated responses with links to next, prev, first, last pages.
+* `User`: A JSON-API Response containing a single user
+* `Users`: for paginated responses with links to `next`, `prev`, `first`, `last` pages.
+* `UserResource`: The schema of the data object appearing in a `User` response, or each item of a `Users` response.
 
 Each line in the attributes block should contain name, type, description, keyword-args.
 The keyword args can contain any [Schema Object](http://swagger.io/specification/#schemaObject) fields.
 
 
-That's all after this run the `phoenix.swagger.generate` mix task for the `swagger-ui` json
+After this run the `phoenix.swagger.generate` mix task for the `swagger-ui` json
 file generation into directory with `phoenix` application:
 
 ```
@@ -168,10 +169,16 @@ mix phoenix.swagger.generate
 ```
 
 As the result there will be `swagger.json` file into root directory of the `phoenix` application.
-To generate `swagger` file with the custom name/place, pass it to the main mix task:
+To generate `swagger` file with the custom name/place, pass it to the main mix task using `-o` or `--output` options:
 
 ```
-mix phoenix.swagger.generate ~/my-phoenix-api.json
+mix phoenix.swagger.generate -o ~/my-phoenix-api.json
+```
+
+If you have more than one router in the project, then the `-r` or `--router` option can be used:
+
+```
+mix phoenix.swagger.generate -o ~/my-phoenix-api.json -r MyApp.Router
 ```
 
 For more informantion, you can find `swagger` specification [here](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md).
