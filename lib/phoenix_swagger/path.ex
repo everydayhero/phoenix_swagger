@@ -165,6 +165,9 @@ defmodule PhoenixSwagger.Path do
   end
 
   defp translate_parameter_opt({:example, v}), do: {:"x-example", v}
+  defp translate_parameter_opt({:items, items_schema}) when is_list(items_schema) do
+     {:items, Enum.into(items_schema, %{})}
+  end
   defp translate_parameter_opt({k, v}), do: {k, v}
 
   @doc """

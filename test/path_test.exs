@@ -11,7 +11,8 @@ defmodule PhoenixSwagger.PathTest do
     produces "application/json"
     tag "Users"
     paging()
-    parameter("filter[gender]", "query", "string", "Gender of the user", required: true, example: "Male")
+    parameter("filter[gender]", :query, :string, "Gender of the user", required: true, example: "Male")
+    parameter("include", :query, :array, "Relationships to include", items: [type: :string, enum: [:organisation, :favourites, :purchases]], collectionFormat: :csv)
     response(200, "OK", Schema.ref(:Users))
     response(400, "Client Error")
   end
@@ -49,6 +50,18 @@ defmodule PhoenixSwagger.PathTest do
               "required" => true,
               "type" => "string",
               "x-example" => "Male"
+            },
+            %{
+              "collectionFormat" => "csv",
+              "description" => "Relationships to include",
+              "in" => "query",
+              "items" => %{
+                "type" => "string",
+                "enum" => ["organisation", "favourites", "purchases"]
+              },
+              "name" => "include",
+              "required" => false,
+              "type" => "array"
             }
           ],
           "responses" => %{
