@@ -5,19 +5,30 @@ defmodule PhoenixSwagger.PathTest do
   doctest PhoenixSwagger.Path
 
   swagger_path :index do
-    get("/api/v1/users")
-    summary("Query for users")
-    description("Query for users with paging and filtering")
+    get "/api/v1/users"
+    summary "Query for users"
+    description "Query for users with paging and filtering"
     produces "application/json"
     tag "Users"
-    paging()
-    parameter("filter[gender]", :query, :string, "Gender of the user", required: true, example: "Male")
-    parameter("include", :query, :array, "Relationships to include", items: [type: :string, enum: [:organisation, :favourites, :purchases]], collectionFormat: :csv)
-    response(200, "OK", Schema.ref(:Users))
-    response(400, "Client Error")
+    paging
+    parameter "filter[gender]", :query, :string, "Gender of the user", required: true, example: "Male"
+    parameter "include", :query, :array, "Relationships to include", items: [type: :string, enum: [:organisation, :favourites, :purchases]], collectionFormat: :csv
+    response 200, "OK", Schema.ref(:Users)
+    response 400, "Client Error"
   end
 
-   test "produces expected swagger json" do
+  swagger_path :create do
+    post "/api/v1/{team}/users"
+    summary "Create a new user"
+    consumes "application/json"
+    produces "application/json"
+    tag "Users"
+    parameter "user", :body, Schema.ref(:User), "user attributes"
+    parameter "team", :path, :string, "Users team ID"
+    response 200, "OK", Schema.ref(:User)
+  end
+
+   test "swagger_path_index produces expected swagger json" do
     assert swagger_path_index == %{
       "/api/v1/users" => %{
         "get" => %{
@@ -75,6 +86,45 @@ defmodule PhoenixSwagger.PathTest do
               "description" => "Client Error"
             }
           }
+        }
+      }
+    }
+  end
+
+  test "swagger_path_create produces expected swagger json" do
+    assert swagger_path_create == %{
+      "/api/v1/{team}/users" => %{
+        "post" => %{
+          "consumes" => ["application/json"],
+          "description" => "",
+          "operationId" => "PhoenixSwagger.PathTest.create",
+          "parameters" => [
+            %{
+              "description" => "user attributes",
+              "in" => "body",
+              "name" => "user",
+              "required" => false,
+              "schema" => %{"$ref" => "#/definitions/User"},
+            },
+            %{
+              "description" => "Users team ID",
+              "in" => "path",
+              "name" => "team",
+              "required" => true,
+              "type" => "string"
+            }
+          ],
+          "produces" => ["application/json"],
+          "responses" => %{
+            "200" => %{
+              "description" => "OK",
+              "schema" => %{
+                "$ref" => "#/definitions/User"
+              }
+            }
+          },
+          "summary" => "Create a new user",
+          "tags" => ["Users"]
         }
       }
     }
