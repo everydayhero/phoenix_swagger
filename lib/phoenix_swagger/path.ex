@@ -33,7 +33,7 @@ defmodule PhoenixSwagger.Path do
       description: "",
       required: false,
       schema: nil,
-      type: "",
+      type: nil,
       format: nil,
       allowEmptyValue: nil,
       items: nil,
@@ -156,9 +156,13 @@ defmodule PhoenixSwagger.Path do
     param = %Parameter{
       name: name,
       in: location,
-      type: type,
       description: description
     }
+    param = case location do
+      :body -> %{param | schema: type}
+      :path -> %{param | type: type, required: true}
+      _ -> %{param | type: type}
+    end
     param = Map.merge(param, opts |> Enum.into(%{}, &translate_parameter_opt/1))
     params = path.operation.parameters
     put_in path.operation.parameters, params ++ [param]
