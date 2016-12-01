@@ -38,8 +38,8 @@ This defines the skeleton of your swagger spec, with the `paths` and `definition
 ```elixir
 def swagger_spec do
   %{
-    :swagger => "2.0",
-    :info => %{
+    swagger: "2.0",
+    info: %{
       version: "0.0.1",
       title: "My awesome phoenix project."
     },
