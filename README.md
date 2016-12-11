@@ -11,29 +11,23 @@ to the [phoenix](http://www.phoenixframework.org/) web framework.
 
 ## Installation
 
-`PhoenixSwagger` provides `phoenix.swagger.generate` mix task for the swagger-ui `json`
-file generation that contains swagger specification that describes API of the `phoenix`
-application.
+`PhoenixSwagger` provides the `phoenix.swagger.generate` mix task for generating the `swagger-ui` `json` file. This file contains the `swagger` specification that describes the API of your `Phoenix` application.
 
-You just need to add the swagger DSL to your controllers and then run this one mix task
-to generate the json files.
-
-To use `PhoenixSwagger` with a phoenix application just add it to your list of
-dependencies in the `mix.exs` file:
+To use `PhoenixSwagger` within a `Phoenix` application, just add it to your dependencies in the `mix.exs` file:
 
 ```elixir
 def deps do
-  [{:phoenix_swagger, "~> 0.1.2"}]
+  [{:edh_phoenix_swagger, "~> 0.1.5"}]
 end
 ```
 
-Now you can use `phoenix_swagger` to generate `swagger-ui` file for you application.
+Now you can use `phoenix_swagger` to generate the `swagger-ui` json file for your application.
 
 ## Usage
 
-You must provide `swagger_spec/0` function in your `Router.ex` file. This function must
+You must define the `swagger_spec/0` function in your `router.ex` file. This function must
 return a map that contains the structure of a [swagger object](http://swagger.io/specification/#swaggerObject)
-This defines the skeleton of your swagger spec, with the `paths` and `definitions` sections being filled in by phoenix_swagger.
+This defines the skeleton of your swagger spec, with the `paths` and `definitions` sections being filled in by `phoenix_swagger`.
 
 ```elixir
 def swagger_spec do
@@ -59,10 +53,10 @@ def swagger_spec do
       }
     ],
     consumes: [
-      "application/vnd.api+json"
+      "application/json"
     ],
     produces: [
-      "application/vnd.api+json"
+      "application/json"
     ],
     definitions: %{},
     paths: %{},
@@ -70,65 +64,79 @@ def swagger_spec do
 end
 ```
 
-`PhoenixSwagger` provides `swagger_path/2` macro that generates swagger documentation
-for the certain phoenix controller.
+`PhoenixSwagger` provides the `swagger_path/2` macro that generates `swagger` documentation that you can use in your controllers.
 
 Example:
 
 ```elixir
-use PhoenixSwagger
+defmodule MyApp.UserController do
+  use MyApp.Web, :controller
+  import PhoenixSwagger
 
-swagger_path :index do
-  get "/users"
-  summary "Get users"
-  description "Get users, filtering by account ID"
-  parameter :query, :id, :integer, "account id", required: true
-  response 200, "Description", :Users
-  tag "users"
-end
+  swagger_path :index do
+    get "/users"
+    summary "Get users"
+    description "Get all users"
+    response 200, "Success", :Users
+    tag "users"
+  end
 
-def index(conn, _params) do
-  posts = Repo.all(Post)
-  render(conn, "index.json", posts: posts)
+  def index(conn, _params) do
+    posts = Repo.all(MyApp.User)
+    render(conn, "index.json", posts: posts)
+  end
+
+  swagger_path :show do
+    get "/users/{id}"
+    summary "Get single user"
+    description "Get a single user by id"
+    parameter :id, :path, :integer, "account id", required: true
+    response 200, "Success", :User
+    tag "users"
+  end
+  
+  def show(conn, _params) do
+    user = Repo.get!(MyApp.User, id)
+    render(conn, "show.json", user: user)
+  end
 end
 ```
 
 The `swagger_path` macro takes two parameters:
 
 * The name of the controller action
-* `do` block containing calls into the PhoenixSwagger.Path module.
+* A `do` block containing calls into the `PhoenixSwagger.Path` module.
 
-The body of the DSL is only a thin layer of syntax sugar over a regular phoenix function pipeline.
-The example above can be re-written as:
+The body of the DSL is only a thin layer of syntax sugar over a regular `Phoenix` function pipeline.
+The example above can be rewritten as:
 
 ```elixir
 def swagger_path_index do
   import Phoenix.Swagger.Path
   get("/users")
   |> description("Short description")
-  |> parameter(:query, :id, :integer, "Property id", required: true)
+  |> parameter(:id, :query, :integer, "Property id", required: true)
   |> response(200, "Description")
   |> nest
   |> to_json
 end
 ```
 
-The `do` bock always starts with one of the `get`, `put`, `post`, `delete`, `head`, `options` functions. This creates a new `#SwaggerPath{}` struct to pipeline through the remaining functions.
+The `do` bock always starts with one of the `get`, `put`, `post`, `delete`, `head`, `options` functions. This creates a new `#SwaggerPath{}` struct to pipe it through the remaining functions.
 
-At a minimum, you should probably supply `summary`, `description`, `parameter`, and `response` docs.
+It is recommended that you supply the documentation fields `summary`, `description`, `parameter`, and `response`.
 
-The `parameter` provides description of the routing parameter for the given action and
-may take four positional parameters, and a keyword list of optional parameters:
+The `parameter` option provides the description of a parameter for the given action and may take four positional arguments, and a keyword list of optional arguments:
 
-* The location of the parameter. Possible values are `query`, `header`, `path`, `formData` or `body`. [required];
 * The name of the parameter. [required];
-* The type of the parameter. Allowed only [swagger data types](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#data-types
+* The location of the parameter. Possible values are `query`, `header`, `path`, `formData` or `body`. [required];
+* The type of the parameter. Allowed [swagger data types](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md#data-types
 ) [required];
-* Description of a parameter. Can be elixir's `String` or function/0 that returns elixir's string;
+* Description of a parameter. Can be an Elixir `String` or `function/0` that returns an Elixir string;
 * Keyword parameters can use any attribute from the [swagger parameter spec](http://swagger.io/specification/#parameterObject), and additionally can use `required: true` to indicate that the parameter is mandatory.
 
-Responses supply a status code, description and optional schema.
-The simplest way to supply a schema is to use the `Schema.ref/1` helper function.
+Responses provide a status code, a description and an optional schema.
+The simplest way to provide a schema is to use the `Schema.ref/1` helper function.
 
 ```elixir
 response 200, "Description", Schema.ref(:Post)
@@ -157,28 +165,26 @@ This example adds 3 entries to the [definitions](http://swagger.io/specification
 * `Users`: for paginated responses with links to `next`, `prev`, `first`, `last` pages.
 * `UserResource`: The schema of the data object appearing in a `User` response, or each item of a `Users` response.
 
-Each line in the attributes block should contain name, type, description, keyword-args.
+Each line in the attributes block should contain `name`, `type`, `description`, `keyword-args`.
 The keyword args can contain any [Schema Object](http://swagger.io/specification/#schemaObject) fields.
 
-
-After this run the `phoenix.swagger.generate` mix task for the `swagger-ui` json
-file generation into directory with `phoenix` application:
+After this, run:
 
 ```
 mix phoenix.swagger.generate
 ```
 
-As the result there will be `swagger.json` file into root directory of the `phoenix` application.
-To generate `swagger` file with the custom name/place, pass it to the main mix task using `-o` or `--output` options:
+This will generate the `swagger.json` file that is used by `swagger-ui` at the root directory of your `phoenix` application.
+To generate the `swagger.json` file with a custom name / path, pass the path + name to the mix task using `-o` or `--output` flags:
 
 ```
 mix phoenix.swagger.generate -o ~/my-phoenix-api.json
 ```
 
-If you have more than one router in the project, then the `-r` or `--router` option can be used:
+If you have more than one router in your project, the `-r` or `--router` flags can be used:
 
 ```
 mix phoenix.swagger.generate -o ~/my-phoenix-api.json -r MyApp.Router
 ```
 
-For more informantion, you can find `swagger` specification [here](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md).
+For more information, check the `swagger` specification [here](https://github.com/swagger-api/swagger-spec/blob/master/versions/2.0.md).
