@@ -175,14 +175,30 @@ defmodule PhoenixSwagger.Path do
   defp translate_parameter_opt({k, v}), do: {k, v}
 
   @doc """
-  Adds page size and page number parameters to the operation of a swagger `%PathObject{}`
+  Adds page size, number and offset parameters to the operation of a swagger `%PathObject{}`
 
   The names default to  "page[size]" and "page[number]", but can be overridden.
+
+  ## Examples
+
+      get "/api/pets/"
+      paging
+      response 200, "OK"
+
+      get "/api/pets/dogs"
+      paging size: "page_size", number: "count"
+      response 200, "OK"
+
+      get "/api/pets/cats"
+      paging size: "limit", offset: "offset"
+      response 200, "OK"
   """
-  def paging(path = %PathObject{}, page_size_arg \\ "page[size]", page_num_arg \\ "page[number]") do
-    path
-    |> parameter(page_size_arg, :query, :integer, "Number of elements per page", minimum: 1)
-    |> parameter(page_num_arg, :query, :integer, "Number of the page", minimum: 1)
+  def paging(path = %PathObject{}, opts \\ [size: "page[size]", number: "page[number]"]) do
+    Enum.reduce opts, path, fn
+      {:size, size}, path -> parameter(path, size, :query, :integer, "Number of elements per page", minimum: 1)
+      {:number, number}, path -> parameter(path, number, :query, :integer, "Number of the page", minimum: 1)
+      {:offset, offset}, path -> parameter(path, offset, :query, :integer, "Offset of first element in the page")
+    end
   end
 
   @doc """
