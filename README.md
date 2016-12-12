@@ -17,7 +17,7 @@ To use `PhoenixSwagger` within a `Phoenix` application, just add it to your depe
 
 ```elixir
 def deps do
-  [{:edh_phoenix_swagger, "~> 0.1.5"}]
+  [{:edh_phoenix_swagger, "~> 0.1.6"}]
 end
 ```
 
