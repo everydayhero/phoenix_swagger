@@ -32,15 +32,27 @@ defmodule PhoenixSwagger do
   defmacro swagger_path(action, expr) do
     body = Util.pipeline_body(expr)
     fun_name = "swagger_path_#{action}" |> String.to_atom
+
     quote do
       def unquote(fun_name)() do
         import PhoenixSwagger.Path
         alias PhoenixSwagger.Schema
+        operation_id_value = case unquote(body).operation.operationId do
+          "" ->  String.replace_prefix("#{__MODULE__}.#{unquote(action)}", "Elixir.","")
+          value -> value
+        end
         unquote(body)
-        |> operation_id("#{__MODULE__}.#{unquote(action)}" |> String.replace_prefix("Elixir.",""))
+        |> operation_id(operation_id_value)
         |> nest
         |> Util.to_json
       end
+    end
+  end
+
+  def get_operation_id(body, action) do
+    case body.operation.operationId do
+      "" ->  String.replace_prefix("#{__MODULE__}.#{action}", "Elixir.","")
+      value -> value
     end
   end
 
