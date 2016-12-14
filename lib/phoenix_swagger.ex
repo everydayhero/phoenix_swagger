@@ -1,6 +1,8 @@
 defmodule PhoenixSwagger do
   @moduledoc "Generates functions from the PhoenixSwagger DSL into Swagger maps"
   alias PhoenixSwagger.Util
+  alias PhoenixSwagger.Path
+  alias PhoenixSwagger.Path.PathObject
 
   @doc """
   Swagger operations (aka "paths") are defined inside a `swagger_path` block.
@@ -32,17 +34,25 @@ defmodule PhoenixSwagger do
   defmacro swagger_path(action, expr) do
     body = Util.pipeline_body(expr)
     fun_name = "swagger_path_#{action}" |> String.to_atom
+
     quote do
       def unquote(fun_name)() do
         import PhoenixSwagger.Path
         alias PhoenixSwagger.Schema
+
         unquote(body)
-        |> operation_id("#{__MODULE__}.#{unquote(action)}" |> String.replace_prefix("Elixir.",""))
+        |> ensure_operation_id(__MODULE__, unquote(action))
         |> nest
         |> Util.to_json
       end
     end
   end
+
+  @doc false
+  def ensure_operation_id(path = %PathObject{operation: %{operationId: ""}}, module, action) do
+    Path.operation_id(path, String.replace_prefix("#{module}.#{action}", "Elixir.",""))
+  end
+  def ensure_operation_id(path, _module, _action), do: path
 
   @doc """
   Schemas for swagger models (aka "definitions") are defined inside a `swagger_definitions` block.
