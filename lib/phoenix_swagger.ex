@@ -41,7 +41,7 @@ defmodule PhoenixSwagger do
         alias PhoenixSwagger.Schema
 
         unquote(body)
-        |> ensure_operation_id(__MODULE__, unquote(action))
+        |> PhoenixSwagger.ensure_operation_id(__MODULE__, unquote(action))
         |> nest
         |> Util.to_json
       end
