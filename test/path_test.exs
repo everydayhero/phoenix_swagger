@@ -10,6 +10,7 @@ defmodule PhoenixSwagger.PathTest do
     description "Query for users with paging and filtering"
     produces "application/json"
     tag "Users"
+    operation_id "list_users"
     paging
     parameter "filter[gender]", :query, :string, "Gender of the user", required: true, example: "Male"
     parameter "include", :query, :array, "Relationships to include", items: [type: :string, enum: [:organisation, :favourites, :purchases]], collectionFormat: :csv
@@ -34,7 +35,7 @@ defmodule PhoenixSwagger.PathTest do
         "get" => %{
           "produces" => ["application/json"],
           "tags" => ["Users"],
-          "operationId" => "PhoenixSwagger.PathTest.index",
+          "operationId" => "list_users",
           "summary" => "Query for users",
           "description" => "Query for users with paging and filtering",
           "parameters" => [
