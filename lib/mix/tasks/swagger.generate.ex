@@ -3,6 +3,7 @@ defmodule Mix.Tasks.Phoenix.Swagger.Generate do
   alias Mix.Project
 
   @shortdoc "Generates swagger.json file based on controller defintions"
+  @recursive true
 
   @moduledoc """
   Generates swagger.json file based on controller definitions
