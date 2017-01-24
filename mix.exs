@@ -1,7 +1,7 @@
 defmodule PhoenixSwagger.Mixfile do
   use Mix.Project
 
-  @version "0.1.8"
+  @version "0.2.0"
 
   def project do
     [app: :edh_phoenix_swagger,
@@ -9,6 +9,7 @@ defmodule PhoenixSwagger.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     elixirc_paths: elixirc_paths(Mix.env),
      deps: deps,
      package: package,
      docs: [extras: ["README.md"], main: "readme",
@@ -31,6 +32,10 @@ defmodule PhoenixSwagger.Mixfile do
   def application do
     [applications: [:logger]]
   end
+
+  # Specifies which paths to compile per environment
+  defp elixirc_paths(:test), do: ["lib", "test/schemas"]
+  defp elixirc_paths(_),     do: ["lib"]
 
   # Dependencies can be Hex packages:
   #
