@@ -179,6 +179,7 @@ defmodule Example.Schema.User do
     email, :string, "Title", required: true
     favorite_pizza, :string, "Favorite pizza", enum: [:pepperoni, :cheese, :supreme]
     birthday, :datetime, "Birthday", format: :datetime
+    address {:ref, :Address}, required: true
   end
 end
 ```

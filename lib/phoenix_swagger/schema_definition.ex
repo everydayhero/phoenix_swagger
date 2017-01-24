@@ -65,12 +65,14 @@ defmodule PhoenixSwagger.SchemaDefinition do
     end
   end
 
-  defp map_properties({name, _, details}) do
-    [type, description, opts] = case details do
-      [type, description] -> [type, description, []]
-      [type, description, opts] -> [type, description, opts]
-    end
+  defp map_properties({name, _, [{:ref, schema_name}, opts]}), do: schema_reference(name, opts[:required], schema_name)
+  defp map_properties({name, _, [ref: schema_name]}), do: schema_reference(name, false, schema_name)
+  defp map_properties({name, _, [type, description]}), do: schema_property(name, type, description, [])
+  defp map_properties({name, _, [type, description, opts]}), do: schema_property(name, type, description, opts)
 
+  defp schema_reference(name, required, schema_name), do: {name, required, Schema.ref(schema_name)}
+
+  defp schema_property(name, type, description, opts) do
     {
       name,
       opts[:required],
