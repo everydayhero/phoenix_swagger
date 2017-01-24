@@ -94,7 +94,7 @@ defmodule MyApp.UserController do
     response 200, "Success", :User
     tag "users"
   end
-  
+
   def show(conn, _params) do
     user = Repo.get!(MyApp.User, id)
     render(conn, "show.json", user: user)
@@ -167,6 +167,29 @@ This example adds 3 entries to the [definitions](http://swagger.io/specification
 
 Each line in the attributes block should contain `name`, `type`, `description`, `keyword-args`.
 The keyword args can contain any [Schema Object](http://swagger.io/specification/#schemaObject) fields.
+
+Schemas can also be defined outside of a `swagger_definitions` using `swagger_schema`.
+
+```elixir
+defmodule Example.Schema.User do
+  use PhoenixSwagger.SchemaDefinition
+
+  swagger_schema do
+    full_name, :string, "Full name"
+    email, :string, "Title", required: true
+    favorite_pizza, :string, "Favorite pizza", enum: [:pepperoni, :cheese, :supreme]
+    birthday, :datetime, "Birthday", format: :datetime
+  end
+end
+```
+
+The schema can then be added to the schema definitions for swagger.
+
+```elixir
+swagger_definitions do
+  User: Example.Schema.User.schema
+end
+```
 
 After this, run:
 
