@@ -95,7 +95,7 @@ defmodule PhoenixSwagger.SchemaDefinition do
       opts[:required],
       Schema.__struct__([
         type: :array,
-        description: description,
+        description: get_description(description),
         items: Schema.ref(schema_name)
       ] ++ Keyword.delete(opts, :required))
     }
@@ -105,7 +105,13 @@ defmodule PhoenixSwagger.SchemaDefinition do
     {
       name,
       opts[:required],
-      Schema.__struct__([type: type, description: description] ++ Keyword.delete(opts, :required))
+      Schema.__struct__([
+        type: type,
+        description: get_description(description)
+      ] ++ Keyword.delete(opts, :required))
     }
   end
+
+  defp get_description({:sigil_S, _, [{_, _, [description]}, _]}), do: description
+  defp get_description(description), do: description
 end
