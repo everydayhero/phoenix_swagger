@@ -17,7 +17,6 @@ defmodule PhoenixSwagger.JsonSchemaTest do
 
     assert user_schema == %{
       "type" => "object",
-      "required" => [],
       "properties" => %{
         "full_name" => %{
           "description" => "Full name",
@@ -72,7 +71,10 @@ defmodule PhoenixSwagger.JsonSchemaTest do
         },
         "passengers" => %{
           "description" => "Passengers in car",
-          "type" => {:array, :User}
+          "items" => %{
+            "$ref" => "#/definitions/User"
+          },
+          "type" => "array"
         },
         "wheels" => %{
           "description" => "",

@@ -51,18 +51,23 @@ defmodule PhoenixSwagger.SchemaDefinition do
 
     properties = Enum.map(properties, &map_properties/1)
 
-    required = for {key, required, _} <- properties, required == true, do: key
+    required_properties = get_required_properties(properties)
     properties = for {key, _, schema} <- properties, into: %{}, do: {key, schema}
 
     quote do
       def schema do
         %Schema{
           type: :object,
-          required: unquote(Macro.escape(required)),
+          required: unquote(Macro.escape(required_properties)),
           properties: unquote(Macro.escape(properties))
         }
       end
     end
+  end
+
+  defp get_required_properties(properties) do
+    required_properties = for {key, required, _} <- properties, required == true, do: key
+    if required_properties == [], do: nil, else: required_properties
   end
 
   defp map_properties({name, _, [{:ref, schema_name}, opts]}),
@@ -71,6 +76,8 @@ defmodule PhoenixSwagger.SchemaDefinition do
     do: schema_reference(name, false, schema_name)
   defp map_properties({name, _, [{:array, schema_name}, opts]}) when is_list(opts),
     do: schema_collection(name, "", schema_name, opts)
+  defp map_properties({name, _, [{:array, schema_name}, description]}),
+    do: schema_collection(name, description, schema_name, [])
   defp map_properties({name, _, [{:array, schema_name}, description, opts]}),
     do: schema_collection(name, description, schema_name, opts)
   defp map_properties({name, _, [array: schema_name]}),
