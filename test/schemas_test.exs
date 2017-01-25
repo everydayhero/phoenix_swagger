@@ -51,7 +51,7 @@ defmodule PhoenixSwagger.JsonSchemaTest do
 
     assert car_schema == %{
       "type" => "object",
-      "required" => ["color", "driver"],
+      "required" => ["color", "engine", "wheels"],
       "properties" => %{
         "color" => %{
           "description" => "Color",
@@ -60,8 +60,26 @@ defmodule PhoenixSwagger.JsonSchemaTest do
         "driver" => %{
           "$ref" => "#/definitions/User"
         },
-        "passenger" => %{
-          "$ref" => "#/definitions/User"
+        "engine" => %{
+          "$ref" => "#/definitions/Engine"
+        },
+        "cargo" => %{
+          "description" => "",
+          "items" => %{
+            "$ref" => "#/definitions/Luggage"
+          },
+          "type" => "array"
+        },
+        "passengers" => %{
+          "description" => "Passengers in car",
+          "type" => {:array, :User}
+        },
+        "wheels" => %{
+          "description" => "",
+          "items" => %{
+            "$ref" => "#/definitions/Wheel"
+          },
+          "type" => "array"
         }
       }
     }

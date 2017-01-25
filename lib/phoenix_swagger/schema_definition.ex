@@ -65,12 +65,34 @@ defmodule PhoenixSwagger.SchemaDefinition do
     end
   end
 
-  defp map_properties({name, _, [{:ref, schema_name}, opts]}), do: schema_reference(name, opts[:required], schema_name)
-  defp map_properties({name, _, [ref: schema_name]}), do: schema_reference(name, false, schema_name)
-  defp map_properties({name, _, [type, description]}), do: schema_property(name, type, description, [])
-  defp map_properties({name, _, [type, description, opts]}), do: schema_property(name, type, description, opts)
+  defp map_properties({name, _, [{:ref, schema_name}, opts]}),
+    do: schema_reference(name, opts[:required], schema_name)
+  defp map_properties({name, _, [ref: schema_name]}),
+    do: schema_reference(name, false, schema_name)
+  defp map_properties({name, _, [{:array, schema_name}, opts]}) when is_list(opts),
+    do: schema_collection(name, "", schema_name, opts)
+  defp map_properties({name, _, [{:array, schema_name}, description, opts]}),
+    do: schema_collection(name, description, schema_name, opts)
+  defp map_properties({name, _, [array: schema_name]}),
+    do: schema_collection(name, "", schema_name, [])
+  defp map_properties({name, _, [type, description]}),
+    do: schema_property(name, type, description, [])
+  defp map_properties({name, _, [type, description, opts]}),
+    do: schema_property(name, type, description, opts)
 
   defp schema_reference(name, required, schema_name), do: {name, required, Schema.ref(schema_name)}
+
+  defp schema_collection(name, description, schema_name, opts) do
+    {
+      name,
+      opts[:required],
+      Schema.__struct__([
+        type: :array,
+        description: description,
+        items: Schema.ref(schema_name)
+      ] ++ Keyword.delete(opts, :required))
+    }
+  end
 
   defp schema_property(name, type, description, opts) do
     {

@@ -180,6 +180,7 @@ defmodule Example.Schema.User do
     favorite_pizza, :string, "Favorite pizza", enum: [:pepperoni, :cheese, :supreme]
     birthday, :datetime, "Birthday", format: :datetime
     address {:ref, :Address}, required: true
+    friends {:array, :User}, "Friends"
   end
 end
 ```

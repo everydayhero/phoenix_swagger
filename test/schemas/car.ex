@@ -3,7 +3,10 @@ defmodule PhoenixSwagger.Test.Schemas.Car do
 
   swagger_schema do
     color :string, "Color", required: true
-    driver {:ref, :User}, required: true
-    passenger {:ref, :User}
+    engine {:ref, :Engine}, required: true
+    driver {:ref, :User}
+    passengers {:array, :User}, "Passengers in car"
+    wheels {:array, :Wheel}, required: true
+    cargo {:array, :Luggage}
   end
 end
