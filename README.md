@@ -17,7 +17,7 @@ To use `PhoenixSwagger` within a `Phoenix` application, just add it to your depe
 
 ```elixir
 def deps do
-  [{:edh_phoenix_swagger, "~> 0.1.8"}]
+  [{:edh_phoenix_swagger, "~> 0.2"}]
 end
 ```
 
@@ -106,21 +106,6 @@ The `swagger_path` macro takes two parameters:
 
 * The name of the controller action
 * A `do` block containing calls into the `PhoenixSwagger.Path` module.
-
-The body of the DSL is only a thin layer of syntax sugar over a regular `Phoenix` function pipeline.
-The example above can be rewritten as:
-
-```elixir
-def swagger_path_index do
-  import Phoenix.Swagger.Path
-  get("/users")
-  |> description("Short description")
-  |> parameter(:id, :query, :integer, "Property id", required: true)
-  |> response(200, "Description")
-  |> nest
-  |> to_json
-end
-```
 
 The `do` bock always starts with one of the `get`, `put`, `post`, `delete`, `head`, `options` functions. This creates a new `#SwaggerPath{}` struct to pipe it through the remaining functions.
 
