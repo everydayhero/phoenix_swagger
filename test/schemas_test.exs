@@ -62,13 +62,15 @@ defmodule PhoenixSwagger.JsonSchemaTest do
           "format" => ".*"
         },
         "driver" => %{
+          "description" => "The user driving the car",
           "$ref" => "#/definitions/User"
         },
         "engine" => %{
+          "description" => "The engine",
           "$ref" => "#/definitions/Engine"
         },
         "cargo" => %{
-          "description" => "",
+          "description" => "Luggage packed in the car",
           "items" => %{
             "$ref" => "#/definitions/Luggage"
           },
@@ -82,7 +84,7 @@ defmodule PhoenixSwagger.JsonSchemaTest do
           "type" => "array"
         },
         "wheels" => %{
-          "description" => "",
+          "description" => "The wheels",
           "items" => %{
             "$ref" => "#/definitions/Wheel"
           },

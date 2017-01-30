@@ -1,5 +1,5 @@
 defmodule PhoenixSwagger.Test.Schemas.Car do
-  use PhoenixSwagger.SchemaDefinition
+  import PhoenixSwagger
 
   swagger_schema do
     color :string, "Color", required: true, format: ".*"
