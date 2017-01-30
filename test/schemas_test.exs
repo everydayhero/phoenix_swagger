@@ -1,13 +1,14 @@
 defmodule PhoenixSwagger.JsonSchemaTest do
   use ExUnit.Case
   alias PhoenixSwagger.Schema
-  alias PhoenixSwagger.Test.Schemas.{User,Book}
+  alias PhoenixSwagger.Test.Schemas.{Book,Car,User}
   import PhoenixSwagger
 
   swagger_definitions do
     [
       User: User.schema,
       Book: Book.schema,
+      Car: Car.schema
     ]
   end
 
@@ -16,10 +17,13 @@ defmodule PhoenixSwagger.JsonSchemaTest do
 
     assert user_schema == %{
       "type" => "object",
-      "required" => [],
       "properties" => %{
         "full_name" => %{
           "description" => "Full name",
+          "type" => "string"
+        },
+        "suffix" => %{
+          "description" => ~S'Name suffix</p>Example "Sr", "Jr"',
           "type" => "string"
         }
       }
@@ -40,6 +44,51 @@ defmodule PhoenixSwagger.JsonSchemaTest do
         "author" => %{
           "description" => "Author",
           "type" => "string"
+        }
+      }
+    }
+  end
+
+  test "produces a Car definition" do
+    car_schema = swagger_definitions["Car"]
+
+    assert car_schema == %{
+      "type" => "object",
+      "required" => ["color", "engine", "wheels"],
+      "properties" => %{
+        "color" => %{
+          "description" => "Color",
+          "type" => "string",
+          "format" => ".*"
+        },
+        "driver" => %{
+          "description" => "The user driving the car",
+          "$ref" => "#/definitions/User"
+        },
+        "engine" => %{
+          "description" => "The engine",
+          "$ref" => "#/definitions/Engine"
+        },
+        "cargo" => %{
+          "description" => "Luggage packed in the car",
+          "items" => %{
+            "$ref" => "#/definitions/Luggage"
+          },
+          "type" => "array"
+        },
+        "passengers" => %{
+          "description" => "Passengers in car",
+          "items" => %{
+            "$ref" => "#/definitions/User"
+          },
+          "type" => "array"
+        },
+        "wheels" => %{
+          "description" => "The wheels",
+          "items" => %{
+            "$ref" => "#/definitions/Wheel"
+          },
+          "type" => "array"
         }
       }
     }
