@@ -58,7 +58,8 @@ defmodule PhoenixSwagger.JsonSchemaTest do
       "properties" => %{
         "color" => %{
           "description" => "Color",
-          "type" => "string"
+          "type" => "string",
+          "format" => ".*"
         },
         "driver" => %{
           "$ref" => "#/definitions/User"
