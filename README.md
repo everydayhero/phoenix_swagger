@@ -172,15 +172,15 @@ Schemas can also be defined outside of a `swagger_definitions` using `swagger_sc
 
 ```elixir
 defmodule Example.Schema.User do
-  use PhoenixSwagger.SchemaDefinition
+  import PhoenixSwagger
 
   swagger_schema do
     full_name, :string, "Full name"
     email, :string, "Title", required: true
     favorite_pizza, :string, "Favorite pizza", enum: [:pepperoni, :cheese, :supreme]
     birthday, :datetime, "Birthday", format: :datetime
-    address {:ref, :Address}, required: true
-    friends {:array, :User}, "Friends"
+    address Schema.ref(:Address), "Home Address", required: true
+    friends Schema.array(:User), "Friends"
   end
 end
 ```

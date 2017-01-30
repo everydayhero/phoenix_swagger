@@ -126,7 +126,7 @@ defmodule PhoenixSwagger do
 
   @doc """
   This macro accepts a block where the schema is defined by listing the properties using a DSL.
-  Defining a property for the schema takes 2 required parameters and one optional parameter.
+  Defining a property for the schema takes 3 required parameters and one optional parameter.
 
   The first parameter is the name of the property.
   The second parameter is the property type, either a simple type like :string, or a %Schema{} struct.
