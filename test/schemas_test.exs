@@ -13,7 +13,7 @@ defmodule PhoenixSwagger.JsonSchemaTest do
   end
 
   test "produces a User definition" do
-    user_schema = swagger_definitions["User"]
+    user_schema = swagger_definitions()["User"]
 
     assert user_schema == %{
       "type" => "object",
@@ -31,7 +31,7 @@ defmodule PhoenixSwagger.JsonSchemaTest do
   end
 
   test "produces a Book definition" do
-    book_schema = swagger_definitions["Book"]
+    book_schema = swagger_definitions()["Book"]
 
     assert book_schema == %{
       "type" => "object",
@@ -50,7 +50,7 @@ defmodule PhoenixSwagger.JsonSchemaTest do
   end
 
   test "produces a Car definition" do
-    car_schema = swagger_definitions["Car"]
+    car_schema = swagger_definitions()["Car"]
 
     assert car_schema == %{
       "type" => "object",

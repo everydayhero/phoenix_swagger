@@ -30,7 +30,7 @@ defmodule PhoenixSwagger.PathTest do
   end
 
    test "swagger_path_index produces expected swagger json" do
-    assert swagger_path_index == %{
+    assert swagger_path_index() == %{
       "/api/v1/users" => %{
         "get" => %{
           "produces" => ["application/json"],
@@ -93,7 +93,7 @@ defmodule PhoenixSwagger.PathTest do
   end
 
   test "swagger_path_create produces expected swagger json" do
-    assert swagger_path_create == %{
+    assert swagger_path_create() == %{
       "/api/v1/{team}/users" => %{
         "post" => %{
           "consumes" => ["application/json"],
