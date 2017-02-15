@@ -51,7 +51,7 @@ defmodule PhoenixSwagger.Mixfile do
       {:credo, "~> 0.3", only: [:dev, :test]},
       {:ex_doc, ">= 0.13.0", only: :dev},
       {:inch_ex, only: :docs},
-      {:poison, "~> 2.0"}
+      {:poison, "~> 3.0"}
     ]
   end
 end
