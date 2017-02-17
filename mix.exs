@@ -10,8 +10,8 @@ defmodule PhoenixSwagger.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      elixirc_paths: elixirc_paths(Mix.env),
-     deps: deps,
-     package: package,
+     deps: deps(),
+     package: package(),
      docs: [extras: ["README.md"], main: "readme",
               source_ref: "#{@version}",
               source_url: "https://github.com/everydayhero/phoenix_swagger"]]
@@ -51,7 +51,7 @@ defmodule PhoenixSwagger.Mixfile do
       {:credo, "~> 0.3", only: [:dev, :test]},
       {:ex_doc, ">= 0.13.0", only: :dev},
       {:inch_ex, ">= 0.0.0", only: :docs},
-      {:poison, "~> 2.0"}
+      {:poison, "~> 3.0"}
     ]
   end
 end
