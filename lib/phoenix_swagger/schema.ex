@@ -67,7 +67,7 @@ defmodule PhoenixSwagger.Schema do
   Sets a property of the Schema
   """
   def property(model, name, type, description, opts \\ [])
-  def property(model = %Schema{}, name, type, description, opts) when is_atom(type) do
+  def property(model = %Schema{}, name, type, description, opts) when is_atom(type) or is_list(type) do
     property(model, name, %Schema{type: type}, description, opts)
   end
   def property(model = %Schema{}, name, type = %Schema{}, description, opts) do

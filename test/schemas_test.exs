@@ -25,6 +25,10 @@ defmodule PhoenixSwagger.JsonSchemaTest do
         "suffix" => %{
           "description" => ~S'Name suffix</p>Example "Sr", "Jr"',
           "type" => "string"
+        },
+        "address" => %{
+          "description" => "Street Address",
+          "type" => ["string", "null"]
         }
       }
     }
