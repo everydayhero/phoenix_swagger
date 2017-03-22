@@ -9,6 +9,12 @@
 `PhoenixSwagger` is the library that provides [swagger](http://swagger.io/) integration
 to the [phoenix](http://www.phoenixframework.org/) web framework.
 
+# NOTICE! 
+
+This repo has been merged with [xerions/phoenix_swagger](https://github.com/xerions/phoenix_swagger).
+All future development will happen in the [xerions repo](https://github.com/xerions/phoenix_swagger).
+Please migrate to use the [phoenix_swagger](https://hex.pm/packages/phoenix_swagger) hex package version 0.5 or greater or the [xerions/phoenix_swagger](https://github.com/xerions/phoenix_swagger) repo directly.
+
 ## Installation
 
 `PhoenixSwagger` provides the `phoenix.swagger.generate` mix task for generating the `swagger-ui` `json` file. This file contains the `swagger` specification that describes the API of your `Phoenix` application.
